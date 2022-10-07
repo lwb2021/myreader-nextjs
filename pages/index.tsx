@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// import { Routes, Route, Navigate } from "react-router-dom";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
@@ -96,15 +95,7 @@ const BooksApp = () => {
 
   return (
     <div className="app">
-      {/* <Routes>
-        <Route path="/" exact element={MainPage(multipleProps)} />
-        <Route path="/search" exact element={SearchPage(multipleProps)} />
-        <Route path="/*" element={<Navigate to="/" />} />
-      </Routes> */}
-
-      {/* <MainPage {...multipleProps} /> */}
-      <h1>hello</h1>
-      <Link href={"/"}></Link>
+      <MainPage {...multipleProps} />
     </div>
   );
 };

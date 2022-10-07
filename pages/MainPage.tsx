@@ -1,10 +1,9 @@
 import Shelf from "../components/Shelf";
-// import { useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
 import { getAll } from "../pages/api/BooksAPI";
 import { trackPromise } from "react-promise-tracker";
 import { RESPONSE_KEY_MAP, CATEGORIES } from "./constants";
-// import PropTypes from "prop-types";
+import { useRouter } from "next/router";
 
 interface Props {
   addBook: Function;
@@ -27,8 +26,7 @@ const MainPage = ({
   wantToReadBooks,
   setWantToReadBooks,
 }: Props) => {
-  // const navigate = useNavigate();
-
+  const router = useRouter();
   useEffect(() => {
     function displayBooks(response: any) {
       const currentlyReading = response.filter(
@@ -82,24 +80,36 @@ const MainPage = ({
             books={currentlyReadBooks}
             shelfIndex={CATEGORIES.indexOf("currentlyReading")}
             moveBook={moveBook}
+            addBook={addBook}
+            // TODO: fit
+            setSearchResults={function () {}}
+            onSearchPage={false}
           />
           <Shelf
             title="Read"
             books={readBooks}
             shelfIndex={CATEGORIES.indexOf("read")}
             moveBook={moveBook}
+            addBook={addBook}
+            // TODO: fit
+            setSearchResults={function () {}}
+            onSearchPage={false}
           />
           <Shelf
             title="Want To Read"
             books={wantToReadBooks}
             shelfIndex={CATEGORIES.indexOf("wantToRead")}
             moveBook={moveBook}
+            addBook={addBook}
+            // TODO: fit
+            setSearchResults={function () {}}
+            onSearchPage={false}
           />
         </div>
       </div>
-      {/* <div className="open-search">
-        <button onClick={() => navigate("/search")}>Add a book</button>
-      </div> */}
+      <div className="open-search">
+        <button onClick={() => router.push("/search")}>Add a book</button>
+      </div>
     </div>
   );
 };

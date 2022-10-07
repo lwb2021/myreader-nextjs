@@ -5,6 +5,7 @@ import Shelf from "../../components/Shelf";
 import { trackPromise } from "react-promise-tracker";
 import { SpinnerSearch } from "../../components/Spinner";
 import { RESPONSE_KEY_MAP } from "../constants";
+import { useRouter } from "next/router";
 
 interface Props {
   addBook: Function;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const SearchPage = ({ addBook, moveBook }: Props) => {
+  const router = useRouter();
   const [searchResults, setSearchResults] = useState([]);
   const [blankMsg, setBlankMsg] = useState("");
   const [prevSearchName, setPrevSearchName] = useState("");
@@ -94,7 +96,7 @@ const SearchPage = ({ addBook, moveBook }: Props) => {
 
   // Get the search name from the input
   function getSearchName() {
-    return document.getElementById("input")!.value;
+    return (document.getElementById("input") as HTMLInputElement).value;
   }
 
   // Handle search
@@ -117,9 +119,9 @@ const SearchPage = ({ addBook, moveBook }: Props) => {
       <div className="search-books-bar">
         <button
           className="close-search"
-          // onClick={() => {
-          //   navigate("/");
-          // }}
+          onClick={() => {
+            router.push("/");
+          }}
         >
           Close
         </button>
@@ -156,6 +158,8 @@ const SearchPage = ({ addBook, moveBook }: Props) => {
             books={searchResults}
             addBook={addBook}
             moveBook={moveBook}
+            // TODO: fix it
+            shelfIndex={-1}
             setSearchResults={setSearchResults}
             onSearchPage={true}
           />

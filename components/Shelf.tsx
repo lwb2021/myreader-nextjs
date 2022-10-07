@@ -6,10 +6,10 @@ interface Props {
   title: string;
   books: any;
   moveBook: Function;
-  shelfIndex?: number;
-  addBook?: Function;
-  setSearchResults?: Function;
-  onSearchPage?: boolean;
+  shelfIndex: number;
+  addBook: Function;
+  setSearchResults: Function;
+  onSearchPage: boolean;
 }
 
 const Shelf = ({

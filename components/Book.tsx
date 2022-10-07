@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { RESPONSE_KEY_MAP, CATEGORIES, BOOKSET } from "../pages/constants";
+import Image from "next/image";
 
 interface Props {
   title?: string;
   book: any;
-  shelfIndex: number | undefined;
-  addBook: Function | undefined;
+  shelfIndex: number;
+  addBook: Function;
   moveBook: Function;
-  setSearchResults: Function | undefined;
-  onSearchPage: boolean | undefined;
+  setSearchResults: Function;
+  onSearchPage: boolean;
 }
 
 const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
@@ -20,16 +21,16 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
   const [optionStatus, setOptionStatus] = useState(false);
 
   // Set a book's visibility
-  function markBookVisibility(checkID, visible = true) {
+  function markBookVisibility(checkID: string, visible = true) {
     const checkmark = document.getElementById(checkID);
-    checkmark.style.visibility = visible ? "visible" : "hidden";
+    checkmark!.style.visibility = visible ? "visible" : "hidden";
   }
 
-  function setLocalStorage(key, value) {
+  function setLocalStorage(key: string, value: string) {
     localStorage.setItem(key, value);
   }
 
-  function onSelect(event) {
+  function onSelect(event: any) {
     // undefined means this book is from the search result
     const prevCategory = book.shelf === undefined ? undefined : book.shelf;
     const currCategory = event.currentTarget.value;
@@ -41,14 +42,14 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
       if (answer) {
         // Remove the book from the bookSet
         const bookSetArr = localStorage
-          .getItem(BOOKSET)
+          .getItem(BOOKSET)!
           .split(",")
           .filter((item) => item !== book.id);
         setLocalStorage(BOOKSET, bookSetArr.join(","));
 
         // Remove the book from the downloaded cache
         const downloadedCache = new Map(
-          JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse))
+          JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse)!)
         );
 
         for (let pair of downloadedCache) {
@@ -75,7 +76,7 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
         );
       else {
         downloadedCache = new Map(
-          JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse))
+          JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse)!)
         );
       }
 
@@ -98,9 +99,9 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
     changeDropdownStatus(book, currCategory);
   }
 
-  function changeDropdownStatus(book, currCategory) {
+  function changeDropdownStatus(book: any, currCategory: string) {
     // Change the book's dropdown menu
-    const elem = document.getElementById(book.id);
+    const elem = document.getElementById(book.id) as HTMLSelectElement;
     // Plus 1 since the index 0 of the dropdown is a disabled option
     elem.options.selectedIndex =
       currCategory === DELETE
@@ -114,7 +115,7 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
   useEffect(() => {
     // Set the default selected option of all the dropdown menus
     (function setDefaultSelected() {
-      const elem = document.getElementById(book.id);
+      const elem = document.getElementById(book.id) as HTMLSelectElement;
       // Plus 1 since the index 0 of the dropdown is a disabled option
       const index = onSearchPage ? NONE_OPTION_INDEX : shelfIndex + 1;
       elem.options.selectedIndex = index;
@@ -122,9 +123,11 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
 
     // Set the default visibility of all checkmarks
     (function setCheckmarkVisibility() {
-      const checkElement = document.getElementById(CHECKMARK_ID);
-      const downloadedCache = new Map(
-        JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse))
+      const checkElement = document.getElementById(
+        CHECKMARK_ID
+      ) as HTMLImageElement;
+      const downloadedCache = new Map<string, string>(
+        JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse)!)
       );
 
       // Mark the book as downloaded
@@ -134,9 +137,9 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
 
       // Label the category for the downloaded book
       if (onSearchPage && downloadedCache.has(book.id)) {
-        const elem = document.getElementById(book.id);
+        const elem = document.getElementById(book.id) as HTMLSelectElement;
         elem.options.selectedIndex =
-          CATEGORIES.indexOf(downloadedCache.get(book.id)) + 1;
+          CATEGORIES.indexOf(downloadedCache.get(book.id)!) + 1;
         setOptionStatus(true);
       }
     })();
@@ -156,11 +159,12 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
                 : `url(undefined)`,
           }}
         ></div>
-        <img
+        <Image
           id={`checkmark_${book.id}`}
           className="checkmark"
           alt="checkmark"
-          src="checkmark.jpeg"
+          src="/checkmark.jpeg"
+          layout="fill"
         />
         <div className="book-shelf-changer">
           <select onChange={onSelect} id={book.id}>
