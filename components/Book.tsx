@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { RESPONSE_KEY_MAP, CATEGORIES, BOOKSET } from "../pages/constants";
 import Image from "next/image";
+import { moveTo, removeFrom } from "../store/book/bookSlice";
+import { useSelector, useDispatch } from "react-redux";
 
 interface Props {
   title?: string;
@@ -19,6 +21,7 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
   const NONE_OPTION_INDEX = 4;
   const CHECKMARK_ID = `checkmark_${book.id}`;
   const [optionStatus, setOptionStatus] = useState(false);
+  const dispatch = useDispatch();
 
   // Set a book's visibility
   function markBookVisibility(checkID: string, visible = true) {
@@ -32,39 +35,53 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
 
   function onSelect(event: any) {
     // undefined means this book is from the search result
-    const prevCategory = book.shelf === undefined ? undefined : book.shelf;
-    const currCategory = event.currentTarget.value;
-    moveBook(book, prevCategory, currCategory);
+    const prevCategory: string | undefined =
+      book.shelf === undefined ? undefined : book.shelf;
+    const currCategory: string = event.currentTarget.value;
+    if (event.target.value in CATEGORIES) {
+      const removeAction = {
+        category: prevCategory,
+        book: book,
+      };
+      dispatch(removeFrom(removeAction));
 
-    if (currCategory === DELETE) {
+      const newBook = Object.assign({}, book, { shelf: currCategory });
+      const moveAction = {
+        category: currCategory,
+        book: newBook,
+      };
+      dispatch(moveTo(moveAction));
+    } else if (currCategory === DELETE) {
       // delete the book
       const answer = window.confirm("Do you want to delete it?");
       if (answer) {
+        const removeAction = {
+          category: prevCategory,
+          book: book,
+        };
+        console.log(removeAction);
+        dispatch(removeFrom(removeAction));
         // Remove the book from the bookSet
-        const bookSetArr = localStorage
-          .getItem(BOOKSET)!
-          .split(",")
-          .filter((item) => item !== book.id);
-        setLocalStorage(BOOKSET, bookSetArr.join(","));
-
+        // const bookSetArr = localStorage
+        //   .getItem(BOOKSET)!
+        //   .split(",")
+        //   .filter((item) => item !== book.id);
+        // setLocalStorage(BOOKSET, bookSetArr.join(","));
         // Remove the book from the downloaded cache
-        const downloadedCache = new Map(
-          JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse)!)
-        );
-
-        for (let pair of downloadedCache) {
-          if (pair[0] === book.id) {
-            downloadedCache.delete(pair[0]);
-          }
-        }
-
-        setLocalStorage(
-          RESPONSE_KEY_MAP.downloadedResponse,
-          JSON.stringify(Array.from(downloadedCache.entries()))
-        );
-
+        // const downloadedCache = new Map(
+        //   JSON.parse(localStorage.getItem(RESPONSE_KEY_MAP.downloadedResponse)!)
+        // );
+        // for (let pair of downloadedCache) {
+        //   if (pair[0] === book.id) {
+        //     downloadedCache.delete(pair[0]);
+        //   }
+        // }
+        // setLocalStorage(
+        //   RESPONSE_KEY_MAP.downloadedResponse,
+        //   JSON.stringify(Array.from(downloadedCache.entries()))
+        // );
         // Mark the book as unchecked
-        markBookVisibility(CHECKMARK_ID, false);
+        // markBookVisibility(CHECKMARK_ID, false);
       }
     } else if (currCategory !== prevCategory) {
       // initialize the cache for downloaded books
@@ -96,7 +113,7 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
       }
     }
     // Change the dropdown menu's status
-    changeDropdownStatus(book, currCategory);
+    // changeDropdownStatus(book, currCategory);
   }
 
   function changeDropdownStatus(book: any, currCategory: string) {
@@ -118,7 +135,7 @@ const Book = ({ book, shelfIndex, addBook, moveBook, onSearchPage }: Props) => {
       const elem = document.getElementById(book.id) as HTMLSelectElement;
       // Plus 1 since the index 0 of the dropdown is a disabled option
       const index = onSearchPage ? NONE_OPTION_INDEX : shelfIndex + 1;
-      elem.options.selectedIndex = index;
+      if (elem) elem.options.selectedIndex = index;
     })();
 
     // Set the default visibility of all checkmarks

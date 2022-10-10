@@ -1,103 +1,148 @@
-import React, { useState } from "react";
+import Shelf from "../components/Shelf";
+import React, { useEffect, useRef } from "react";
+import { getAll } from "./api/BooksAPI";
+import { trackPromise } from "react-promise-tracker";
+import { RESPONSE_KEY_MAP, CATEGORIES } from "./constants";
 import { useRouter } from "next/router";
-import Link from "next/link";
-
-import SearchPage from "./search";
-import MainPage from "./MainPage";
-import { RESPONSE_KEY_MAP, CATEGORIES, BOOKSET } from "./constants";
+import { useSelector, useDispatch } from "react-redux";
+import {} from "../store/book/bookSlice";
+import type { RootState } from "../store/store";
+import { moveTo, removeFrom } from "../store/book/bookSlice";
 
 interface Props {
   addBook: Function;
   moveBook: Function;
-  currentlyReadBooks: string;
+  currentlyReadBooks: string[];
   setCurrentlyReadBooks: Function;
-  readBooks: string;
+  readBooks: string[];
   setReadBooks: Function;
-  wantToReadBooks: string;
+  wantToReadBooks: string[];
   setWantToReadBooks: Function;
 }
 
-const BooksApp = () => {
-  let [currentlyReadBooks, setCurrentlyReadBooks] = useState<string[]>([]);
-  let [readBooks, setReadBooks] = useState<string[]>([]);
-  let [wantToReadBooks, setWantToReadBooks] = useState<string[]>([]);
+const MainPage = ({
+  addBook,
+  moveBook,
+  setCurrentlyReadBooks,
+  setReadBooks,
+  setWantToReadBooks,
+}: Props) => {
+  const router = useRouter();
+  let currentlyReadBooks = useSelector(
+    (state: RootState) => state.book.currentlyReadBooks
+  );
 
-  // Pass the props to child components in bulk
-  const multipleProps = {
-    moveBook,
-    addBook,
-    currentlyReadBooks,
-    setCurrentlyReadBooks,
-    readBooks,
-    setReadBooks,
-    wantToReadBooks,
-    setWantToReadBooks,
-  };
+  let readBooks = useSelector((state: RootState) => state.book.readBooks);
+  let wantToReadBooks = useSelector(
+    (state: RootState) => state.book.wantToReadBooks
+  );
+  // const currentlyReadBooks = useRef<Array<object>>([]);
+  // const readBooks = useRef<Array<object>>([]);
+  // const wantToReadBooks = useRef<Array<object>>([]);
+  const dispatch = useDispatch();
 
-  function moveBook(book: any, prevCategory: string, currCategory: string) {
-    /* 
-    - Remove the book from the old shelf
-    - prevCategory is undefined when it is from the search result
-     */
-
-    book.shelf = currCategory;
-
-    if (prevCategory === CATEGORIES[0]) {
-      currentlyReadBooks = currentlyReadBooks.filter(
-        (item: any) => item.id !== book.id
-      );
-      setCurrentlyReadBooks(currentlyReadBooks);
-    } else if (prevCategory === CATEGORIES[1]) {
-      readBooks = readBooks.filter((item: any) => item.id !== book.id);
-      setReadBooks(readBooks);
-    } else if (prevCategory === CATEGORIES[2]) {
-      wantToReadBooks = wantToReadBooks.filter(
-        (item: any) => item.id !== book.id
-      );
-      setWantToReadBooks(wantToReadBooks);
+  useEffect(() => {
+    function displayBooks(response: Array<any>) {
+      for (const bookObject of response) {
+        const action = {
+          category: bookObject.shelf,
+          book: bookObject,
+        };
+        dispatch(moveTo(action));
+      }
     }
 
-    // Move the book to the new shelf or delete it
-    if (currCategory === CATEGORIES[0]) {
-      currentlyReadBooks.push(book);
-      setCurrentlyReadBooks(currentlyReadBooks);
-    } else if (currCategory === CATEGORIES[1]) {
-      readBooks.push(book);
-      setReadBooks(readBooks);
-    } else if (currCategory === CATEGORIES[2]) {
-      wantToReadBooks.push(book);
-      setWantToReadBooks(wantToReadBooks);
-    } else {
-      // delete the book and reset its category
-      book.shelf = undefined;
+    async function fetchBooks() {
+      console.log("fetchbooks");
+      try {
+        const response = await getAll();
+        console.log("getAll");
+        // localStorage.setItem(
+        //   RESPONSE_KEY_MAP.fetchResponse,
+        //   JSON.stringify(response)
+        // );
+
+        // Add all book IDs to the set
+        // response.map((book: any) => addBook(book));
+        displayBooks(response);
+      } catch (err) {
+        console.log(err);
+      }
     }
 
-    // Save the most updated shelves' information to the local storage
-    const booksInfo = Array.prototype.concat(
-      currentlyReadBooks,
-      readBooks,
-      wantToReadBooks
-    );
+    // Retrieve the shelves' information from the local storage if it exists
+    // if (localStorage.getItem(RESPONSE_KEY_MAP.fetchResponse)) {
+    // const response = localStorage.getItem(RESPONSE_KEY_MAP.fetchResponse);
+    // if (response) {
+    //   displayBooks(JSON.parse(response));
+    // }
 
-    const responseKey = RESPONSE_KEY_MAP.fetchResponse;
-    localStorage.setItem(responseKey, JSON.stringify(booksInfo));
-  }
-
-  // Record all the downloaded books
-  function addBook(book: any) {
-    // initialize the search book result
-    if (!localStorage.getItem(BOOKSET)) localStorage.setItem(BOOKSET, "");
-    const bookSet = new Set(localStorage.getItem(BOOKSET)!.split(","));
-    bookSet.add(book.id);
-    const bookSetArr = [...bookSet];
-    localStorage.setItem(BOOKSET, bookSetArr.join(","));
-  }
+    // console.log(
+    //   currentlyReadBooks.current.length,
+    //   readBooks.current.length,
+    //   wantToReadBooks.current.length
+    // );
+    // if (
+    //   currentlyReadBooks.current.length ||
+    //   readBooks.current.length ||
+    //   wantToReadBooks.current.length
+    // ) {
+    //   console.log("here");
+    //   console.log(currentlyReadBooks.current);
+    // } else {
+    //   // trackPromise(fetchBooks());
+    //   // fetchBooks();
+    //   console.log(123);
+    // }
+    trackPromise(fetchBooks());
+  }, []);
 
   return (
     <div className="app">
-      <MainPage {...multipleProps} />
+      <div className="list-books">
+        <div className="list-books-title">
+          <h1>MyReads</h1>
+        </div>
+        <div className="list-books-content">
+          <div>
+            <Shelf
+              title="Currently Reading"
+              books={currentlyReadBooks}
+              shelfIndex={CATEGORIES.indexOf("currentlyReading")}
+              moveBook={moveBook}
+              addBook={addBook}
+              // TODO: fit
+              setSearchResults={function () {}}
+              onSearchPage={false}
+            />
+            <Shelf
+              title="Read"
+              books={readBooks}
+              shelfIndex={CATEGORIES.indexOf("read")}
+              moveBook={moveBook}
+              addBook={addBook}
+              // TODO: fit
+              setSearchResults={function () {}}
+              onSearchPage={false}
+            />
+            <Shelf
+              title="Want To Read"
+              books={wantToReadBooks}
+              shelfIndex={CATEGORIES.indexOf("wantToRead")}
+              moveBook={moveBook}
+              addBook={addBook}
+              // TODO: fit
+              setSearchResults={function () {}}
+              onSearchPage={false}
+            />
+          </div>
+        </div>
+        <div className="open-search">
+          <button onClick={() => router.push("/search")}>Add a book</button>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default BooksApp;
+export default MainPage;
