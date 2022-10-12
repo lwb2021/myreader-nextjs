@@ -1,103 +1,174 @@
 import { bookActionTypes } from "./action";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, current } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { CATEGORIES } from "../../pages/constants";
 import { RootState } from "../store";
 
-// const bookInitialState = {
-//   currentlyReadBooks: [],
-//   readBooks: [],
-//   wantToReadBooks: [],
-// };
-
-// export default function reducer(state = bookInitialState, action: any) {
-//   switch (action.type) {
-//     case bookActionTypes.MOVE_TO_CURRENTLY:
-//       return {
-//         ...state,
-//         currentlyReadBooks: [...state.currentlyReadBooks, action.newItem],
-//       };
-//     case bookActionTypes.REMOVE_FROM_CURRENTLY:
-//       return {
-//         ...state,
-//         currentlyReadBooks: [
-//           ...state.currentlyReadBooks.filter(
-//             // TODO: fix it
-//             (book: object) => book !== action.newItem.id
-//           ),
-//         ],
-//       };
-//     case bookActionTypes.MOVE_TO_READ:
-//       return {
-//         ...state,
-//         readBooks: [...state.readBooks, action.newItem],
-//       };
-//     case bookActionTypes.MOVE_TO_WANT:
-//       return {
-//         ...state,
-//         wantToReadBooks: [...state.wantToReadBooks, action.newItem],
-//       };
-//     default:
-//       return state;
-//   }
-// }
+interface BookObject {
+  id: string;
+  isDownloaded: Boolean;
+  shelf: string;
+}
 
 export interface BookState {
-  currentlyReadBooks: object[];
-  readBooks: object[];
-  wantToReadBooks: object[];
+  currentlyReadBooks: BookObject[];
+  readBooks: BookObject[];
+  wantToReadBooks: BookObject[];
+  searchedBooks: BookObject[];
+  prevSearchWord: string;
+  firstTimeLoad: Boolean;
 }
 
 const initialState: BookState = {
   currentlyReadBooks: [],
   readBooks: [],
   wantToReadBooks: [],
+  searchedBooks: [],
+  prevSearchWord: "",
+  firstTimeLoad: true,
 };
+
+const IS_DOWNLOADED = "isDownloaded";
 
 export const bookSlice = createSlice({
   name: "book",
   initialState,
   reducers: {
     moveTo: (state = initialState, action: PayloadAction<any>) => {
-      // currently reading
       const { book, category } = action.payload;
+
+      // Mark the book as downloaded if it is from the search page
+      let searchedIndex = -1;
+      if (book.hasOwnProperty(IS_DOWNLOADED)) {
+        state.searchedBooks = state.searchedBooks.map((item, idx) => {
+          if (item.id === book.id) {
+            searchedIndex = idx;
+            return Object.assign({}, current(state).searchedBooks[idx], {
+              isDownloaded: true,
+              shelf: category,
+            });
+          } else {
+            return item;
+          }
+        });
+      }
+
+      // If it is to download a book, get the book object from the searchBooks
+      // array and then add it to the shelf
+      const bookToAdd = book.hasOwnProperty(IS_DOWNLOADED)
+        ? current(state).searchedBooks[searchedIndex]
+        : Object.assign({}, book, { shelf: category });
+
+      // currently reading
       if (category === CATEGORIES[0]) {
-        state.currentlyReadBooks.push(book);
+        state.currentlyReadBooks.push(bookToAdd);
       }
       // read
       else if (category === CATEGORIES[1]) {
-        state.readBooks.push(book);
+        state.readBooks.push(bookToAdd);
       }
       // want to read
-      else {
-        state.wantToReadBooks.push(book);
+      else if (category === CATEGORIES[2]) {
+        state.wantToReadBooks.push(bookToAdd);
       }
     },
-    removeFrom: (state = initialState, action: PayloadAction<any>) => {
-      // currently reading
+    addToSearchPage: (state = initialState, action: PayloadAction<any>) => {
+      const { book } = action.payload;
+      const combinedArray = [
+        ...current(state).currentlyReadBooks,
+        ...current(state).readBooks,
+        ...current(state).wantToReadBooks,
+      ];
+
+      // Check if the book is already downloaded
+      const index = combinedArray.findIndex((item) => item.id === book.id);
+
+      // First time downloaded
+      if (index === -1) {
+        book.isDownloaded = false;
+        state.searchedBooks.push(book);
+        // Book is already downloaded
+      } else {
+        state.searchedBooks.push(combinedArray[index]);
+      }
+    },
+    clearSearchedBooks: (state = initialState) => {
+      state.searchedBooks = [];
+    },
+    removeDownload: (state = initialState, action: PayloadAction<any>) => {
       const { book, category } = action.payload;
+      // Delete the downloaded book from the shelf
+      // currently reading
       if (category === CATEGORIES[0]) {
         state.currentlyReadBooks = state.currentlyReadBooks.filter(
-          (item: any) => item.id !== book.id
+          (item: BookObject) => item.id !== book.id
         );
       }
       // read
       else if (category === CATEGORIES[1]) {
         state.readBooks = state.readBooks.filter(
-          (item: any) => item.id !== book.id
+          (item: BookObject) => item.id !== book.id
         );
       }
       // want to read
-      else {
+      else if (category === CATEGORIES[2]) {
         state.wantToReadBooks = state.wantToReadBooks.filter(
-          (item: any) => item.id !== book.id
+          (item: BookObject) => item.id !== book.id
         );
       }
+
+      // Reset the book's 'isDownloaded' and 'shelf' properties
+      state.searchedBooks = state.searchedBooks.map((item, idx) => {
+        if (item.id === book.id) {
+          return Object.assign({}, current(state).searchedBooks[idx], {
+            isDownloaded: false,
+            shelf: undefined,
+          });
+        } else {
+          return item;
+        }
+      });
+    },
+    removeFrom: (state = initialState, action: PayloadAction<any>) => {
+      const { book, category } = action.payload;
+
+      // currently reading
+      if (category === CATEGORIES[0]) {
+        state.currentlyReadBooks = state.currentlyReadBooks.filter(
+          (item: BookObject) => item.id !== book.id
+        );
+      }
+      // read
+      else if (category === CATEGORIES[1]) {
+        state.readBooks = state.readBooks.filter(
+          (item: BookObject) => item.id !== book.id
+        );
+      }
+      // want to read
+      else if (category === CATEGORIES[2]) {
+        state.wantToReadBooks = state.wantToReadBooks.filter(
+          (item: BookObject) => item.id !== book.id
+        );
+      }
+    },
+    markPrevSearch: (state = initialState, action: PayloadAction<any>) => {
+      state.prevSearchWord = action.payload.searchName;
+    },
+    switchMode: (state = initialState) => {
+      state.firstTimeLoad = false;
     },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { moveTo, removeFrom } = bookSlice.actions;
+export const {
+  removeDownload,
+  moveTo,
+  removeFrom,
+  clearSearchedBooks,
+  addToSearchPage,
+  markPrevSearch,
+  switchMode,
+} = bookSlice.actions;
 
 export default bookSlice.reducer;

@@ -4,22 +4,33 @@ import Shelf from "../../components/Shelf";
 // import debounce from "lodash";
 import { trackPromise } from "react-promise-tracker";
 import { SpinnerSearch } from "../../components/Spinner";
-import { RESPONSE_KEY_MAP } from "../constants";
 import { useRouter } from "next/router";
+import {
+  clearSearchedBooks,
+  addToSearchPage,
+  markPrevSearch,
+} from "../../store/book/bookSlice";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "../../store/store";
 
 interface Props {
   addBook: Function;
   moveBook: Function;
 }
 
-const SearchPage = ({ addBook, moveBook }: Props) => {
+const SearchPage = ({ addBook }: Props) => {
   const router = useRouter();
-  const [searchResults, setSearchResults] = useState([]);
-  const [blankMsg, setBlankMsg] = useState("");
-  const [prevSearchName, setPrevSearchName] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const SEARCH_ERR_MSG = "Please enter a valid search keyword!";
   const BLANK_MSG = "No result found.";
+  const dispatch = useDispatch();
+  let searchedBooks = useSelector(
+    (state: RootState) => state.book.searchedBooks
+  );
+  let prevSearchWord = useSelector(
+    (state: RootState) => state.book.prevSearchWord
+  );
+  let isSearchDone = true;
 
   // function debounce(fn, time, triggerNow) {
   //   var t = null,
@@ -55,37 +66,26 @@ const SearchPage = ({ addBook, moveBook }: Props) => {
   // }
 
   async function searchBook(query: string) {
-    const responseKey = RESPONSE_KEY_MAP.searchResponse;
-    const searchResultCache = localStorage.getItem(responseKey);
-    // Retrieve from cache if the search result exists
-    if (searchResultCache && query === prevSearchName) {
-      setSearchResults(JSON.parse(searchResultCache));
-    } else {
-      try {
-        // const debouncedSearch = debounce((query) => search(query), 1000);
+    try {
+      // setBlankMsg("");
 
-        // console.log(debounce);
-        // const searchResult = debouncedSearch(query);
-        // console.log(searchResult);
-        setBlankMsg("");
-        let searchResult = await search(query);
+      // Clear the search result
+      dispatch(clearSearchedBooks());
 
-        if (searchResult.error) {
-          setSearchResults([]);
-          setBlankMsg(BLANK_MSG);
-          return;
-        }
+      let response = await search(query);
 
-        // Display the search result to UI
-        setSearchResults(searchResult);
-
-        // Add search result to local storage
-        localStorage.setItem(responseKey, JSON.stringify(searchResult));
-      } catch (err) {
-        console.log(err);
-        setSearchResults([]);
-        setBlankMsg(BLANK_MSG);
+      for (const bookObject of response) {
+        const action = {
+          category: undefined,
+          // Initialize the book download status
+          book: bookObject,
+        };
+        dispatch(addToSearchPage(action));
       }
+    } catch (err) {
+      console.log(err);
+
+      // setBlankMsg(BLANK_MSG);
     }
   }
 
@@ -109,7 +109,13 @@ const SearchPage = ({ addBook, moveBook }: Props) => {
       }
 
       const searchName = getSearchName();
-      setPrevSearchName(searchName);
+      // setSearchKeyword(searchName);
+      // setTitle(searchName);
+
+      const searchWordAction = {
+        searchName: searchName,
+      };
+      dispatch(markPrevSearch(searchWordAction));
       trackPromise(searchBook(searchName));
     }
   }
@@ -139,7 +145,7 @@ const SearchPage = ({ addBook, moveBook }: Props) => {
             id="input"
             placeholder="Search by title or author"
             onKeyDown={handleSearch}
-            value={searchKeyword}
+            value={searchKeyword ? searchKeyword : prevSearchWord}
             onChange={(e) => setSearchKeyword(e.target.value)}
             maxLength={20}
           />
@@ -147,20 +153,18 @@ const SearchPage = ({ addBook, moveBook }: Props) => {
         <button onClick={handleSearch}>search</button>
       </div>
       <div className="search-books-results">
-        {searchResults.length === 0 ? (
+        {searchedBooks.length === 0 ? (
           <div className="bookshelf">
-            <h2 className="bookshelf-title">{getTitle(prevSearchName)}</h2>
-            <h3>{blankMsg}</h3>
+            <h2 className="bookshelf-title">{getTitle(prevSearchWord)}</h2>
+            {/* <h3>{prevSearchWord ? BLANK_MSG : ""}</h3> */}
           </div>
         ) : (
           <Shelf
-            title={getTitle(prevSearchName)}
-            books={searchResults}
+            title={getTitle(prevSearchWord)}
+            books={searchedBooks}
             addBook={addBook}
-            moveBook={moveBook}
             // TODO: fix it
             shelfIndex={-1}
-            setSearchResults={setSearchResults}
             onSearchPage={true}
           />
         )}

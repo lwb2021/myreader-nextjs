@@ -4,6 +4,11 @@ export const RESPONSE_KEY_MAP = {
   downloadedResponse: "downloadedResponse",
 };
 
-export const CATEGORIES = ["currentlyReading", "read", "wantToRead"];
+export const CATEGORIES = [
+  "currentlyReading",
+  "read",
+  "wantToRead",
+  "searchResult",
+];
 
 export const BOOKSET = "bookSet";

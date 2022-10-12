@@ -1,20 +1,31 @@
-import * as types from "./types";
-import { combineReducers } from "redux";
-import { createWrapper } from "next-redux-wrapper";
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import bookReducer from "./book/bookSlice";
+import storage from "redux-persist/lib/storage";
+import { persistReducer, persistStore } from "redux-persist";
+import thunk from "redux-thunk";
+import hardSet from "redux-persist/lib/stateReconciler/hardSet";
 
-// const rootReducer = combineReducers({
-//   reducer: {
-//     book: bookReducer,
-//   },
-// });
+const rootReducer = combineReducers({
+  book: bookReducer,
+});
+
+const persistConfig = {
+  key: "root",
+  storage,
+  stateReconciler: hardSet,
+};
+
+const persistedReducer = persistReducer<ReturnType<typeof rootReducer>>(
+  persistConfig,
+  rootReducer
+);
 
 export const store = configureStore({
-  reducer: {
-    book: bookReducer,
-  },
+  reducer: persistedReducer,
+  middleware: [thunk],
 });
+
+export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

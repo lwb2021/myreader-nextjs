@@ -5,22 +5,12 @@ import { Spinner } from "./Spinner";
 interface Props {
   title: string;
   books: any;
-  moveBook: Function;
   shelfIndex: number;
   addBook: Function;
-  setSearchResults: Function;
   onSearchPage: boolean;
 }
 
-const Shelf = ({
-  title,
-  books,
-  shelfIndex,
-  addBook,
-  moveBook,
-  setSearchResults,
-  onSearchPage,
-}: Props) => {
+const Shelf = ({ title, books, shelfIndex, addBook, onSearchPage }: Props) => {
   return (
     <div className="bookshelf">
       <h2 className="bookshelf-title">{title}</h2>
@@ -32,8 +22,6 @@ const Shelf = ({
                 book={book}
                 shelfIndex={shelfIndex}
                 addBook={addBook}
-                moveBook={moveBook}
-                setSearchResults={setSearchResults}
                 onSearchPage={onSearchPage}
               />
             </li>
