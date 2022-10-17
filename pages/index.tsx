@@ -1,63 +1,39 @@
-import Shelf from "../components/Shelf";
-import React, { useEffect, useRef } from "react";
-import { getAll } from "./api/BooksAPI";
+import HomeBookListing from "../components/HomeBookListing";
+import React, { useEffect } from "react";
+import {
+  getAll as getAllBooks,
+  update as updateBook,
+  get as getBook,
+} from "./api/BooksAPI";
 import { trackPromise } from "react-promise-tracker";
-import { CATEGORIES } from "./constants";
 import { useRouter } from "next/router";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store/store";
-import { moveTo, switchMode } from "../store/book/bookSlice";
+import { moveBooks, switchMode } from "../store/book/bookSlice";
 
-interface Props {
-  addBook: Function;
-  moveBook: Function;
-  currentlyReadBooks: string[];
-  setCurrentlyReadBooks: Function;
-  readBooks: string[];
-  setReadBooks: Function;
-  wantToReadBooks: string[];
-  setWantToReadBooks: Function;
-}
-
-const MainPage = ({
-  addBook,
-  moveBook,
-  setCurrentlyReadBooks,
-  setReadBooks,
-  setWantToReadBooks,
-}: Props) => {
+const HomePage = () => {
   const router = useRouter();
-  let currentlyReadBooks = useSelector(
-    (state: RootState) => state.book.currentlyReadBooks
-  );
-
-  let readBooks = useSelector((state: RootState) => state.book.readBooks);
-  let wantToReadBooks = useSelector(
-    (state: RootState) => state.book.wantToReadBooks
-  );
-  let firstTimeLoad = useSelector(
-    (state: RootState) => state.book.firstTimeLoad
-  );
+  const { firstTimeLoad } = useSelector((state: RootState) => state.book);
+  const titlesArray = ["Currently Reading", "Read", "Want To Read"];
 
   const dispatch = useDispatch();
-
   useEffect(() => {
     function displayBooks(response: Array<any>) {
-      for (const bookObject of response) {
-        const action = {
-          category: bookObject.shelf,
-          book: bookObject,
-        };
-        dispatch(moveTo(action));
-      }
+      const action = {
+        response: response,
+      };
+      dispatch(moveBooks(action));
     }
 
     async function fetchBooks() {
-      console.log("fetchbooks");
       try {
-        const response = await getAll();
-        console.log("getAll");
-
+        const response = await getAllBooks();
+        console.log(response);
+        // response = await updateBook(response[0], "wantToRead");
+        // // response = await getAllBooks();
+        // console.log(response.currentlyReading);
+        // let book = await getBook(response.currentlyReading[0]);
+        // console.log(book);
         displayBooks(response);
       } catch (err) {
         console.log(err);
@@ -66,9 +42,10 @@ const MainPage = ({
 
     if (firstTimeLoad) {
       trackPromise(fetchBooks());
-      dispatch(switchMode());
     }
-  }, []);
+
+    dispatch(switchMode());
+  });
 
   return (
     <div className="app">
@@ -77,35 +54,7 @@ const MainPage = ({
           <h1>MyReads</h1>
         </div>
         <div className="list-books-content">
-          <div>
-            <Shelf
-              title="Currently Reading"
-              books={currentlyReadBooks}
-              shelfIndex={CATEGORIES.indexOf("currentlyReading")}
-              addBook={addBook}
-              // TODO: fit
-              setSearchResults={function () {}}
-              onSearchPage={false}
-            />
-            <Shelf
-              title="Read"
-              books={readBooks}
-              shelfIndex={CATEGORIES.indexOf("read")}
-              addBook={addBook}
-              // TODO: fit
-              setSearchResults={function () {}}
-              onSearchPage={false}
-            />
-            <Shelf
-              title="Want To Read"
-              books={wantToReadBooks}
-              shelfIndex={CATEGORIES.indexOf("wantToRead")}
-              addBook={addBook}
-              // TODO: fit
-              setSearchResults={function () {}}
-              onSearchPage={false}
-            />
-          </div>
+          <HomeBookListing titlesArray={titlesArray} />
         </div>
         <div className="open-search">
           <button onClick={() => router.push("/search")}>Add a book</button>
@@ -115,4 +64,4 @@ const MainPage = ({
   );
 };
 
-export default MainPage;
+export default HomePage;

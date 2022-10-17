@@ -1,28 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { CATEGORIES } from "../pages/constants";
+import { CATEGORIES } from "../utils/constants";
 import Image from "next/image";
 import { moveTo, removeFrom, removeDownload } from "../store/book/bookSlice";
 import { useDispatch } from "react-redux";
+import { BookType } from "../store/book/bookSlice";
+import { useRouter } from "next/router";
 
-interface Props {
-  title?: string;
-  book: any;
-  shelfIndex: number;
-  addBook: Function;
-  onSearchPage: boolean;
+export interface BookProps {
+  book: BookType;
 }
 
-const Book = ({ book, onSearchPage }: Props) => {
-  const WIDTH = 128;
-  const HEIGHT = 193;
-  const DELETE = "delete";
-  const NONE_OPTION_INDEX = 4;
-  const CHECKMARK_ID = `checkmark_${book.id}`;
-  const [optionStatus, setOptionStatus] = useState(false);
+const Book = ({ book }: BookProps) => {
+  const CATEGORIES_LENGTH = CATEGORIES.length;
   const dispatch = useDispatch();
+  const router = useRouter();
 
   function moveBook(
-    book: any,
+    book: BookType,
     prevCategory: string | undefined,
     currCategory: string
   ) {
@@ -59,7 +53,7 @@ const Book = ({ book, onSearchPage }: Props) => {
 
     if (CATEGORIES.includes(event.target.value)) {
       moveBook(book, prevCategory, currCategory);
-    } else if (currCategory === DELETE) {
+    } else if (currCategory === "delete") {
       deleteBook(book, prevCategory);
     }
   }
@@ -68,7 +62,7 @@ const Book = ({ book, onSearchPage }: Props) => {
     // Set the default visibility of all checkmarks
     function setBookVisibility() {
       const checkElement = document.getElementById(
-        CHECKMARK_ID
+        `checkmark_${book.id}`
       ) as HTMLImageElement;
       checkElement.style.visibility = "visible";
     }
@@ -76,13 +70,14 @@ const Book = ({ book, onSearchPage }: Props) => {
     // Set the default selected option of all the dropdown menus
     function setDefaultBookStatus() {
       const elem = document.getElementById(book.id) as HTMLSelectElement;
+
+      // Set it as CATEGORIES_LENGTH so all choices are unselected
       const index = book.shelf
         ? CATEGORIES.indexOf(book.shelf) + 1
-        : NONE_OPTION_INDEX;
+        : CATEGORIES_LENGTH;
       elem.options.selectedIndex = index;
 
-      if (onSearchPage && index !== NONE_OPTION_INDEX) {
-        setOptionStatus(true);
+      if (router.pathname === "/search" && index !== CATEGORIES_LENGTH) {
         setBookVisibility();
       }
     }
@@ -95,8 +90,8 @@ const Book = ({ book, onSearchPage }: Props) => {
         <div
           className="book-cover"
           style={{
-            width: WIDTH,
-            height: HEIGHT,
+            width: 128,
+            height: 193,
             backgroundImage:
               `${book.imageLinks}` !== "undefined"
                 ? `url("${book.imageLinks.thumbnail}")`
@@ -119,21 +114,11 @@ const Book = ({ book, onSearchPage }: Props) => {
             <option value="move" disabled>
               Move to...
             </option>
-            <option value="currentlyReading" disabled={optionStatus}>
-              Currently Reading
-            </option>
-            <option value="read" disabled={optionStatus}>
-              Read
-            </option>
-            <option value="wantToRead" disabled={optionStatus}>
-              Want to Read
-            </option>
+            <option value="currentlyReading">Currently Reading</option>
+            <option value="read">Read</option>
+            <option value="wantToRead">Want to Read</option>
 
-            {onSearchPage ? (
-              <option value="none" disabled>
-                None
-              </option>
-            ) : (
+            {router.pathname === "/search" ? null : (
               <option value="delete">Delete</option>
             )}
           </select>

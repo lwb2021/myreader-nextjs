@@ -1,20 +1,23 @@
-import { bookActionTypes } from "./action";
 import { createSlice, current } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { CATEGORIES } from "../../pages/constants";
-import { RootState } from "../store";
+import { CATEGORIES } from "../../utils/constants";
 
-interface BookObject {
+export interface BookType {
   id: string;
   isDownloaded: Boolean;
   shelf: string;
+  imageLinks: {
+    thumbnail: string;
+  };
+  title: string;
+  authors: string[];
 }
 
 export interface BookState {
-  currentlyReadBooks: BookObject[];
-  readBooks: BookObject[];
-  wantToReadBooks: BookObject[];
-  searchedBooks: BookObject[];
+  currentlyReadBooks: BookType[];
+  readBooks: BookType[];
+  wantToReadBooks: BookType[];
+  searchedBooks: BookType[];
   prevSearchWord: string;
   firstTimeLoad: Boolean;
 }
@@ -34,6 +37,47 @@ export const bookSlice = createSlice({
   name: "book",
   initialState,
   reducers: {
+    moveBooks: (state = initialState, action: PayloadAction<any>) => {
+      const { response } = action.payload;
+      for (const bookObject of response) {
+        const book = bookObject;
+        const category = bookObject.shelf;
+        // Mark the book as downloaded if it is from the search page
+        let searchedIndex = -1;
+        if (book.hasOwnProperty(IS_DOWNLOADED)) {
+          state.searchedBooks = state.searchedBooks.map((item, idx) => {
+            if (item.id === book.id) {
+              searchedIndex = idx;
+              return Object.assign({}, current(state).searchedBooks[idx], {
+                isDownloaded: true,
+                shelf: category,
+              });
+            } else {
+              return item;
+            }
+          });
+        }
+
+        // If it is to download a book, get the book object from the searchBooks
+        // array and then add it to the shelf
+        const bookToAdd = book.hasOwnProperty(IS_DOWNLOADED)
+          ? current(state).searchedBooks[searchedIndex]
+          : Object.assign({}, book, { shelf: category });
+
+        // currently reading
+        if (category === CATEGORIES[0]) {
+          state.currentlyReadBooks.push(bookToAdd);
+        }
+        // read
+        else if (category === CATEGORIES[1]) {
+          state.readBooks.push(bookToAdd);
+        }
+        // want to read
+        else if (category === CATEGORIES[2]) {
+          state.wantToReadBooks.push(bookToAdd);
+        }
+      }
+    },
     moveTo: (state = initialState, action: PayloadAction<any>) => {
       const { book, category } = action.payload;
 
@@ -101,19 +145,19 @@ export const bookSlice = createSlice({
       // currently reading
       if (category === CATEGORIES[0]) {
         state.currentlyReadBooks = state.currentlyReadBooks.filter(
-          (item: BookObject) => item.id !== book.id
+          (item: BookType) => item.id !== book.id
         );
       }
       // read
       else if (category === CATEGORIES[1]) {
         state.readBooks = state.readBooks.filter(
-          (item: BookObject) => item.id !== book.id
+          (item: BookType) => item.id !== book.id
         );
       }
       // want to read
       else if (category === CATEGORIES[2]) {
         state.wantToReadBooks = state.wantToReadBooks.filter(
-          (item: BookObject) => item.id !== book.id
+          (item: BookType) => item.id !== book.id
         );
       }
 
@@ -135,19 +179,19 @@ export const bookSlice = createSlice({
       // currently reading
       if (category === CATEGORIES[0]) {
         state.currentlyReadBooks = state.currentlyReadBooks.filter(
-          (item: BookObject) => item.id !== book.id
+          (item: BookType) => item.id !== book.id
         );
       }
       // read
       else if (category === CATEGORIES[1]) {
         state.readBooks = state.readBooks.filter(
-          (item: BookObject) => item.id !== book.id
+          (item: BookType) => item.id !== book.id
         );
       }
       // want to read
       else if (category === CATEGORIES[2]) {
         state.wantToReadBooks = state.wantToReadBooks.filter(
-          (item: BookObject) => item.id !== book.id
+          (item: BookType) => item.id !== book.id
         );
       }
     },
@@ -164,6 +208,7 @@ export const bookSlice = createSlice({
 export const {
   removeDownload,
   moveTo,
+  moveBooks,
   removeFrom,
   clearSearchedBooks,
   addToSearchPage,
