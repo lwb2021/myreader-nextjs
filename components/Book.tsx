@@ -1,61 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { CATEGORIES } from "../utils/constants";
 import Image from "next/image";
-import { moveTo, removeFrom, removeDownload } from "../store/book/bookSlice";
-import { useDispatch } from "react-redux";
-import { BookType } from "../store/book/bookSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
+import type { AppDispatch, RootState } from "../store/store";
+import { displayBooks, move } from "../store/book/bookSlice";
+import { current } from "@reduxjs/toolkit";
+import {
+  getAll as getAllBooks,
+  update as updateBook,
+  get as getBook,
+} from "../pages/api/BooksAPI";
 
 export interface BookProps {
-  book: BookType;
+  id: string;
+  isDownloaded: Boolean;
+  shelf: string;
+  imageLinks: {
+    thumbnail: string;
+  };
+  title: string;
+  authors: string[];
 }
 
-const Book = ({ book }: BookProps) => {
+const Book = (book: BookProps) => {
   const CATEGORIES_LENGTH = CATEGORIES.length;
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<any>();
   const router = useRouter();
 
-  function moveBook(
-    book: BookType,
-    prevCategory: string | undefined,
-    currCategory: string
-  ) {
+  async function onSelect(event: any) {
+    // Update the book
     const moveAction = {
-      category: currCategory,
       book: book,
+      shelf: event.currentTarget.value,
     };
-    dispatch(moveTo(moveAction));
+    await dispatch(move(moveAction));
 
-    // Remove from the previous shelf
-    const removeAction = {
-      category: prevCategory,
-      book: book,
+    // Get and display the most recent book listing information
+    const response = await getAllBooks();
+    const action = {
+      response: response,
     };
-    dispatch(removeFrom(removeAction));
-  }
-
-  function deleteBook(book: any, prevCategory: string | undefined) {
-    const answer = window.confirm("Do you want to delete it?");
-    if (answer) {
-      const deleteAction = {
-        category: prevCategory,
-        book: book,
-      };
-      dispatch(removeDownload(deleteAction));
-    }
-  }
-
-  function onSelect(event: any) {
-    // undefined means this book is from the search result
-    const prevCategory: string | undefined =
-      book.shelf === undefined ? undefined : book.shelf;
-    const currCategory: string = event.currentTarget.value;
-
-    if (CATEGORIES.includes(event.target.value)) {
-      moveBook(book, prevCategory, currCategory);
-    } else if (currCategory === "delete") {
-      deleteBook(book, prevCategory);
-    }
+    dispatch(displayBooks(action));
   }
 
   useEffect(() => {

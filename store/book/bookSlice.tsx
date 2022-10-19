@@ -1,8 +1,15 @@
-import { createSlice, current } from "@reduxjs/toolkit";
+import { createSlice, current, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { CATEGORIES } from "../../utils/constants";
+import { update } from "../../pages/api/BooksAPI";
 
-export interface BookType {
+interface newStateProps {
+  currentlyReadBooks: BookProps[];
+  readBooks: BookProps[];
+  wantToReadBooks: BookProps[];
+}
+
+export interface BookProps {
   id: string;
   isDownloaded: Boolean;
   shelf: string;
@@ -13,16 +20,16 @@ export interface BookType {
   authors: string[];
 }
 
-export interface BookState {
-  currentlyReadBooks: BookType[];
-  readBooks: BookType[];
-  wantToReadBooks: BookType[];
-  searchedBooks: BookType[];
+export interface BookStateProps {
+  currentlyReadBooks: BookProps[];
+  readBooks: BookProps[];
+  wantToReadBooks: BookProps[];
+  searchedBooks: BookProps[];
   prevSearchWord: string;
   firstTimeLoad: Boolean;
 }
 
-const initialState: BookState = {
+const initialState: BookStateProps = {
   currentlyReadBooks: [],
   readBooks: [],
   wantToReadBooks: [],
@@ -31,7 +38,15 @@ const initialState: BookState = {
   firstTimeLoad: true,
 };
 
-const IS_DOWNLOADED = "isDownloaded";
+export const move = createAsyncThunk("book/move", async (data: any) => {
+  const { book, shelf } = data;
+  try {
+    const response = await update(book, shelf);
+    return response;
+  } catch (err: any) {
+    console.log(err);
+  }
+});
 
 export const bookSlice = createSlice({
   name: "book",
@@ -40,66 +55,29 @@ export const bookSlice = createSlice({
     displayBooks: (state = initialState, action: PayloadAction<any>) => {
       const { response } = action.payload;
 
-      // Clear the state before each fetch request
-      Object.assign(state, {
+      const newState: newStateProps = {
         currentlyReadBooks: [],
         readBooks: [],
         wantToReadBooks: [],
-      });
+      };
 
-      response.filter((book: BookType) => {
+      response.filter((book: BookProps) => {
         const category = book.shelf;
         // currently reading
         if (category === CATEGORIES[0]) {
-          state.currentlyReadBooks.push(book);
+          newState.currentlyReadBooks.push(book);
         }
         // read
         else if (category === CATEGORIES[1]) {
-          state.readBooks.push(book);
+          newState.readBooks.push(book);
         }
         // want to read
         else if (category === CATEGORIES[2]) {
-          state.wantToReadBooks.push(book);
+          newState.wantToReadBooks.push(book);
         }
       });
-    },
-    moveTo: (state = initialState, action: PayloadAction<any>) => {
-      const { book, category } = action.payload;
 
-      // Mark the book as downloaded if it is from the search page
-      let searchedIndex = -1;
-      if (book.hasOwnProperty(IS_DOWNLOADED)) {
-        state.searchedBooks = state.searchedBooks.map((item, idx) => {
-          if (item.id === book.id) {
-            searchedIndex = idx;
-            return Object.assign({}, current(state).searchedBooks[idx], {
-              isDownloaded: true,
-              shelf: category,
-            });
-          } else {
-            return item;
-          }
-        });
-      }
-
-      // If it is to download a book, get the book object from the searchBooks
-      // array and then add it to the shelf
-      const bookToAdd = book.hasOwnProperty(IS_DOWNLOADED)
-        ? current(state).searchedBooks[searchedIndex]
-        : Object.assign({}, book, { shelf: category });
-
-      // currently reading
-      if (category === CATEGORIES[0]) {
-        state.currentlyReadBooks.push(bookToAdd);
-      }
-      // read
-      else if (category === CATEGORIES[1]) {
-        state.readBooks.push(bookToAdd);
-      }
-      // want to read
-      else if (category === CATEGORIES[2]) {
-        state.wantToReadBooks.push(bookToAdd);
-      }
+      Object.assign(state, newState);
     },
     addToSearchPage: (state = initialState, action: PayloadAction<any>) => {
       const { book } = action.payload;
@@ -124,62 +102,7 @@ export const bookSlice = createSlice({
     clearSearchedBooks: (state = initialState) => {
       state.searchedBooks = [];
     },
-    removeDownload: (state = initialState, action: PayloadAction<any>) => {
-      const { book, category } = action.payload;
-      // Delete the downloaded book from the shelf
-      // currently reading
-      if (category === CATEGORIES[0]) {
-        state.currentlyReadBooks = state.currentlyReadBooks.filter(
-          (item: BookType) => item.id !== book.id
-        );
-      }
-      // read
-      else if (category === CATEGORIES[1]) {
-        state.readBooks = state.readBooks.filter(
-          (item: BookType) => item.id !== book.id
-        );
-      }
-      // want to read
-      else if (category === CATEGORIES[2]) {
-        state.wantToReadBooks = state.wantToReadBooks.filter(
-          (item: BookType) => item.id !== book.id
-        );
-      }
 
-      // Reset the book's 'isDownloaded' and 'shelf' properties
-      state.searchedBooks = state.searchedBooks.map((item, idx) => {
-        if (item.id === book.id) {
-          return Object.assign({}, current(state).searchedBooks[idx], {
-            isDownloaded: false,
-            shelf: undefined,
-          });
-        } else {
-          return item;
-        }
-      });
-    },
-    removeFrom: (state = initialState, action: PayloadAction<any>) => {
-      const { book, category } = action.payload;
-
-      // currently reading
-      if (category === CATEGORIES[0]) {
-        state.currentlyReadBooks = state.currentlyReadBooks.filter(
-          (item: BookType) => item.id !== book.id
-        );
-      }
-      // read
-      else if (category === CATEGORIES[1]) {
-        state.readBooks = state.readBooks.filter(
-          (item: BookType) => item.id !== book.id
-        );
-      }
-      // want to read
-      else if (category === CATEGORIES[2]) {
-        state.wantToReadBooks = state.wantToReadBooks.filter(
-          (item: BookType) => item.id !== book.id
-        );
-      }
-    },
     markPrevSearch: (state = initialState, action: PayloadAction<any>) => {
       state.prevSearchWord = action.payload.searchName;
     },
@@ -188,10 +111,7 @@ export const bookSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
-  removeDownload,
-  moveTo,
   displayBooks,
-  removeFrom,
   clearSearchedBooks,
   addToSearchPage,
   markPrevSearch,
