@@ -5,34 +5,41 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 
 interface HomeBookListingProps {
-  titlesArray: string[];
+  title: string;
 }
 
-const HomeBookListing = ({ titlesArray }: HomeBookListingProps) => {
+const HomeBookListing = ({ title }: HomeBookListingProps) => {
   const { currentlyReadBooks, readBooks, wantToReadBooks } = useSelector(
     (state: RootState) => state.book
   );
-  const listingMap = new Map();
-  listingMap.set("Currently Reading", currentlyReadBooks);
-  listingMap.set("Read", readBooks);
-  listingMap.set("Want To Read", wantToReadBooks);
+
+  // Prepare the books to be displayed
+  let books: BookType[] = [];
+  switch (title) {
+    case "Currently Reading":
+      books = currentlyReadBooks;
+      break;
+    case "Read":
+      books = readBooks;
+      break;
+    case "Want To Read":
+      books = wantToReadBooks;
+      break;
+  }
 
   return (
     <div className="bookshelf">
-      {titlesArray.map((title: string) => (
-        <div key={title}>
-          <h2 className="bookshelf-title">{title}</h2>
-          <div className="bookshelf-books">
-            <ul className="books-grid">
-              {listingMap.get(title).map((book: BookType) => (
-                <li key={book.id}>
-                  <Book book={book} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      ))}
+      <h2 className="bookshelf-title">{title}</h2>
+      <div className="bookshelf-books">
+        <ol className="books-grid">
+          {books.map((book: BookType) => (
+            <li key={book.id}>
+              <Book book={book} />
+            </li>
+          ))}
+        </ol>
+        {/* <Spinner /> */}
+      </div>
     </div>
   );
 };
