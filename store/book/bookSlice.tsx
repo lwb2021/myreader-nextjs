@@ -2,22 +2,12 @@ import { createSlice, current, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { CATEGORIES } from "../../utils/constants";
 import { update } from "../../pages/api/BooksAPI";
+import { BookProps } from "../../components/Book";
 
 interface newStateProps {
   currentlyReadBooks: BookProps[];
   readBooks: BookProps[];
   wantToReadBooks: BookProps[];
-}
-
-export interface BookProps {
-  id: string;
-  isDownloaded: Boolean;
-  shelf: string;
-  imageLinks: {
-    thumbnail: string;
-  };
-  title: string;
-  authors: string[];
 }
 
 export interface BookStateProps {
@@ -52,7 +42,10 @@ export const bookSlice = createSlice({
   name: "book",
   initialState,
   reducers: {
-    displayBooks: (state = initialState, action: PayloadAction<any>) => {
+    displayHomePageBooks: (
+      state = initialState,
+      action: PayloadAction<any>
+    ) => {
       const { response } = action.payload;
 
       const newState: newStateProps = {
@@ -77,6 +70,30 @@ export const bookSlice = createSlice({
         }
       });
 
+      Object.assign(state, newState);
+    },
+    displaySearchPageBooks: (
+      state = initialState,
+      action: PayloadAction<any>
+    ) => {
+      const { response } = action.payload;
+      const newState: { searchedBooks: BookProps[] } = {
+        searchedBooks: [],
+      };
+      const combinedArray = [
+        ...current(state).currentlyReadBooks,
+        ...current(state).readBooks,
+        ...current(state).wantToReadBooks,
+      ];
+      response.filter((book: BookProps) => {
+        const index = combinedArray.findIndex((item) => item.id === book.id);
+        if (index === -1) {
+          newState.searchedBooks.push(book);
+        } else {
+          book.shelf = combinedArray[index].shelf;
+          newState.searchedBooks.push(book);
+        }
+      });
       Object.assign(state, newState);
     },
     addToSearchPage: (state = initialState, action: PayloadAction<any>) => {
@@ -111,7 +128,8 @@ export const bookSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
-  displayBooks,
+  displayHomePageBooks,
+  displaySearchPageBooks,
   clearSearchedBooks,
   addToSearchPage,
   markPrevSearch,

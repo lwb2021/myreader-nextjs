@@ -9,7 +9,7 @@ import { trackPromise } from "react-promise-tracker";
 import { useRouter } from "next/router";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store/store";
-import { displayBooks } from "../store/book/bookSlice";
+import { displayHomePageBooks } from "../store/book/bookSlice";
 
 const HomePage = () => {
   const router = useRouter();
@@ -22,7 +22,7 @@ const HomePage = () => {
         const action = {
           response: response,
         };
-        dispatch(displayBooks(action));
+        dispatch(displayHomePageBooks(action));
       } catch (err) {
         console.log(err);
       }

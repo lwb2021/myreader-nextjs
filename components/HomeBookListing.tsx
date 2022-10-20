@@ -1,6 +1,6 @@
 import React from "react";
 import Book from "./Book";
-import { BookType } from "../store/book/bookSlice";
+import { BookProps } from "./Book";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 
@@ -14,7 +14,7 @@ const HomeBookListing = ({ title }: HomeBookListingProps) => {
   );
 
   // Prepare the books to be displayed
-  let books: BookType[] = [];
+  let books: BookProps[] = [];
   switch (title) {
     case "Currently Reading":
       books = currentlyReadBooks;
@@ -32,7 +32,7 @@ const HomeBookListing = ({ title }: HomeBookListingProps) => {
       <h2 className="bookshelf-title">{title}</h2>
       <div className="bookshelf-books">
         <ol className="books-grid">
-          {books.map((book: BookType) => (
+          {books.map((book: BookProps) => (
             <li key={book.id}>
               <Book book={book} />
             </li>

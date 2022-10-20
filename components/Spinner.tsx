@@ -4,7 +4,6 @@ import { ThreeDots } from "react-loader-spinner";
 
 export const Spinner = () => {
   const { promiseInProgress } = usePromiseTracker();
-  console.log(111, promiseInProgress);
   return (
     <div className="spinner">
       <ThreeDots

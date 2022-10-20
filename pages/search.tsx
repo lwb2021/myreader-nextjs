@@ -3,7 +3,10 @@ import { search } from "./api/BooksAPI";
 import SearchBookListing from "../components/SearchBookListing";
 
 import { useRouter } from "next/router";
-import { clearSearchedBooks, addToSearchPage } from "../store/book/bookSlice";
+import {
+  clearSearchedBooks,
+  displaySearchPageBooks,
+} from "../store/book/bookSlice";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store/store";
 import { debounce } from "lodash";
@@ -17,28 +20,21 @@ const SearchPage = () => {
 
   let { searchedBooks } = useSelector((state: RootState) => state.book);
 
-  const debouncedSearch = useRef(
-    debounce(async (query: string) => {
-      try {
-        // Clear the previous result
-        setBlankMsg("");
-        dispatch(clearSearchedBooks());
-
-        const response = await search(query);
-        for (const BookType of response) {
-          const action = {
-            category: undefined,
-            // Initialize the book download status
-            book: BookType,
-          };
-          dispatch(addToSearchPage(action));
-        }
-      } catch (err) {
-        if (query) setBlankMsg(BLANK_MSG);
-        console.log(err);
-      }
-    }, 500)
-  ).current;
+  const debouncedSearch = debounce(async (query: string) => {
+    try {
+      // Clear the previous result
+      setBlankMsg("");
+      dispatch(clearSearchedBooks());
+      const response = await search(query);
+      const action = {
+        response: response,
+      };
+      dispatch(displaySearchPageBooks(action));
+    } catch (err) {
+      if (query) setBlankMsg(BLANK_MSG);
+      console.log(err);
+    }
+  }, 500);
 
   useEffect(() => {
     // Clear the previous result
@@ -47,7 +43,8 @@ const SearchPage = () => {
     return () => {
       debouncedSearch.cancel();
     };
-  }, [debouncedSearch, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Return the title for the search result
   function getTitle(name: string) {
@@ -60,24 +57,9 @@ const SearchPage = () => {
   }
 
   // Handle search
-  function handleSearch(event: any) {
-    // if (event.key === "Enter" || event.type === "click") {
-    // // Handle empty search keyword
-    // if (!searchKeyword) {
-    //   alert("Please enter a valid search keyword!");
-    //   return;
-    // }
-
+  function handleSearch() {
     const searchName = getSearchName();
-    // setSearchKeyword(searchName);
     debouncedSearch(searchName);
-
-    // const searchWordAction = {
-    //   searchName: searchName,
-    // };
-    // dispatch(markPrevSearch(searchWordAction));
-    // trackPromise(debouncedSearch(searchName));
-    // debouncedSearch(searchName);
   }
 
   return (

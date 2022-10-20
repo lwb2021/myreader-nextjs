@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CATEGORIES } from "../utils/constants";
 import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import type { AppDispatch, RootState } from "../store/store";
-import { displayBooks, move } from "../store/book/bookSlice";
+import {
+  displayHomePageBooks,
+  move,
+  clearSearchedBooks,
+} from "../store/book/bookSlice";
 import { current } from "@reduxjs/toolkit";
 import {
   getAll as getAllBooks,
@@ -14,7 +18,6 @@ import {
 
 export interface BookProps {
   id: string;
-  isDownloaded: Boolean;
   shelf: string;
   imageLinks: {
     thumbnail: string;
@@ -23,52 +26,63 @@ export interface BookProps {
   authors: string[];
 }
 
-const Book = (book: BookProps) => {
+const Book = ({ book }: { book: BookProps }) => {
   const CATEGORIES_LENGTH = CATEGORIES.length;
   const dispatch = useDispatch<any>();
   const router = useRouter();
+  const currentlySelectedIndex = useRef(-1);
 
-  async function onSelect(event: any) {
+  async function onSelect(event: React.ChangeEvent<HTMLSelectElement>) {
     // Update the book
+    const shelf = event.currentTarget.value;
     const moveAction = {
-      book: book,
-      shelf: event.currentTarget.value,
+      book,
+      shelf,
     };
     await dispatch(move(moveAction));
 
-    // Get and display the most recent book listing information
+    // Mark the book as selected
+    if (router.pathname === "/search") {
+      setBookVisibility();
+    }
+    // Update home book listing information
     const response = await getAllBooks();
     const action = {
       response: response,
     };
-    dispatch(displayBooks(action));
+    dispatch(displayHomePageBooks(action));
+  }
+
+  function setBookVisibility() {
+    const checkElement = document.getElementById(
+      `checkmark_${book.id}`
+    ) as HTMLImageElement;
+    checkElement.style.visibility = "visible";
   }
 
   useEffect(() => {
-    // Set the default visibility of all checkmarks
-    function setBookVisibility() {
-      const checkElement = document.getElementById(
-        `checkmark_${book.id}`
-      ) as HTMLImageElement;
-      checkElement.style.visibility = "visible";
-    }
-
     // Set the default selected option of all the dropdown menus
     function setDefaultBookStatus() {
-      const elem = document.getElementById(book.id) as HTMLSelectElement;
-
       // Set it as CATEGORIES_LENGTH so all choices are unselected
-      const index = book.shelf
+      const elem = document.getElementById(book.id) as HTMLSelectElement;
+      currentlySelectedIndex.current = book.shelf
         ? CATEGORIES.indexOf(book.shelf) + 1
         : CATEGORIES_LENGTH;
-      elem.options.selectedIndex = index;
+      elem.options.selectedIndex = currentlySelectedIndex.current;
 
-      if (router.pathname === "/search" && index !== CATEGORIES_LENGTH) {
+      // ? does not work
+      // elem.options.selectedIndex = CATEGORIES_LENGTH;
+
+      if (
+        router.pathname === "/search" &&
+        currentlySelectedIndex.current !== CATEGORIES_LENGTH
+      ) {
         setBookVisibility();
       }
     }
     setDefaultBookStatus();
-  }, [book.shelf]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="book">
@@ -92,11 +106,7 @@ const Book = (book: BookProps) => {
           layout="fill"
         />
         <div className="book-shelf-changer">
-          <select
-            onChange={onSelect}
-            id={book.id}
-            data-isdownloaded={book.isDownloaded}
-          >
+          <select onChange={onSelect} id={book.id}>
             <option value="move" disabled>
               Move to...
             </option>

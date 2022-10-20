@@ -1,13 +1,13 @@
 import React from "react";
 import Book from "./Book";
 import { Spinner } from "./Spinner";
-import { BookType } from "../store/book/bookSlice";
+import { BookProps } from "./Book";
 import { usePromiseTracker } from "react-promise-tracker";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 
 interface SearchBookListingProps {
-  books: BookType[];
+  books: BookProps[];
 }
 
 const SearchBookListing = ({ books }: SearchBookListingProps) => {
@@ -34,7 +34,7 @@ const SearchBookListing = ({ books }: SearchBookListingProps) => {
     <div>
       <div className="bookshelf-books">
         <ul className="books-grid">
-          {books.map((book: BookType) => (
+          {books.map((book: BookProps) => (
             <li key={book.id}>
               <Book book={book} />
             </li>
