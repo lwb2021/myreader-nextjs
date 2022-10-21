@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { search } from "./api/BooksAPI";
 import SearchBookListing from "../components/SearchBookListing";
 
@@ -19,24 +19,26 @@ const SearchPage = () => {
 
   const dispatch = useDispatch();
 
-  const debouncedSearch = debounce(async (query: string) => {
-    setSpinnerVisible(true);
-    try {
-      // Clear the previous result
-      setBlankMsg("");
-      dispatch(clearSearchedBooks());
-      const response = await search(query);
-      const action = {
-        response: response,
-      };
-      dispatch(displaySearchPageBooks(action));
-    } catch (err) {
-      // Leave it blank if the search query is empty
-      if (query) setBlankMsg(BLANK_MSG);
-      console.log(err);
-    }
-    setSpinnerVisible(false);
-  }, 500);
+  const debouncedSearch = useRef(
+    debounce(async (query: string) => {
+      setSpinnerVisible(true);
+      try {
+        // Clear the previous result
+        setBlankMsg("");
+        dispatch(clearSearchedBooks());
+        const response = await search(query);
+        const action = {
+          response: response,
+        };
+        dispatch(displaySearchPageBooks(action));
+      } catch (err) {
+        // Leave it blank if the search query is empty
+        if (query) setBlankMsg(BLANK_MSG);
+        console.log(err);
+      }
+      setSpinnerVisible(false);
+    }, 500)
+  ).current;
 
   useEffect(() => {
     // Clear the previous result
