@@ -1,9 +1,13 @@
 const api = "https://reactnd-books-api.udacity.com";
 
-let token;
+// TODO: delete the token as it is for testing purposes
+let token = "dhagzjhr";
 if (typeof window !== "undefined") {
   // Generate a unique token for storing your bookshelf data on the backend server.
   token = localStorage.token;
+  // TODO: delete the token as it is for testing purposes
+  token = "dhagzjhr";
+  console.log("local token is ", token);
 
   if (!token)
     token = localStorage.token = Math.random().toString(36).substr(-8);

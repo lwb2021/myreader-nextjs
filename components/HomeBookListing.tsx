@@ -2,13 +2,15 @@ import React from "react";
 import Book from "./Book";
 import { BookProps } from "./Book";
 import { useSelector } from "react-redux";
+import { Spinner } from "./Spinner";
 import type { RootState } from "../store/store";
 
 interface HomeBookListingProps {
   title: string;
+  spinnerVisible: boolean;
 }
 
-const HomeBookListing = ({ title }: HomeBookListingProps) => {
+const HomeBookListing = ({ title, spinnerVisible }: HomeBookListingProps) => {
   const { currentlyReadBooks, readBooks, wantToReadBooks } = useSelector(
     (state: RootState) => state.book
   );
@@ -38,7 +40,7 @@ const HomeBookListing = ({ title }: HomeBookListingProps) => {
             </li>
           ))}
         </ol>
-        {/* <Spinner /> */}
+        <Spinner spinnerVisible={spinnerVisible} />
       </div>
     </div>
   );

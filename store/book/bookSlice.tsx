@@ -15,7 +15,6 @@ export interface BookStateProps {
   readBooks: BookProps[];
   wantToReadBooks: BookProps[];
   searchedBooks: BookProps[];
-  prevSearchWord: string;
   firstTimeLoad: Boolean;
 }
 
@@ -24,7 +23,6 @@ const initialState: BookStateProps = {
   readBooks: [],
   wantToReadBooks: [],
   searchedBooks: [],
-  prevSearchWord: "",
   firstTimeLoad: true,
 };
 
@@ -96,32 +94,8 @@ export const bookSlice = createSlice({
       });
       Object.assign(state, newState);
     },
-    addToSearchPage: (state = initialState, action: PayloadAction<any>) => {
-      const { book } = action.payload;
-      const combinedArray = [
-        ...current(state).currentlyReadBooks,
-        ...current(state).readBooks,
-        ...current(state).wantToReadBooks,
-      ];
-
-      // Check if the book is already downloaded
-      const index = combinedArray.findIndex((item) => item.id === book.id);
-
-      // First time downloaded
-      if (index === -1) {
-        book.isDownloaded = false;
-        state.searchedBooks.push(book);
-        // Book is already downloaded
-      } else {
-        state.searchedBooks.push(combinedArray[index]);
-      }
-    },
     clearSearchedBooks: (state = initialState) => {
       state.searchedBooks = [];
-    },
-
-    markPrevSearch: (state = initialState, action: PayloadAction<any>) => {
-      state.prevSearchWord = action.payload.searchName;
     },
   },
 });
@@ -131,8 +105,6 @@ export const {
   displayHomePageBooks,
   displaySearchPageBooks,
   clearSearchedBooks,
-  addToSearchPage,
-  markPrevSearch,
 } = bookSlice.actions;
 
 export default bookSlice.reducer;

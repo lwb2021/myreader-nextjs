@@ -1,9 +1,7 @@
 import React from "react";
-import { usePromiseTracker } from "react-promise-tracker";
 import { ThreeDots } from "react-loader-spinner";
 
-export const Spinner = () => {
-  const { promiseInProgress } = usePromiseTracker();
+export const Spinner = ({ spinnerVisible }: { spinnerVisible: boolean }) => {
   return (
     <div className="spinner">
       <ThreeDots
@@ -12,7 +10,7 @@ export const Spinner = () => {
         radius="10"
         color="#2e7c31"
         ariaLabel="three-dots-loading"
-        visible={promiseInProgress}
+        visible={spinnerVisible}
       />
     </div>
   );

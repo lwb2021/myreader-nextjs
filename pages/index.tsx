@@ -1,22 +1,18 @@
 import HomeBookListing from "../components/HomeBookListing";
-import React, { useEffect } from "react";
-import {
-  getAll as getAllBooks,
-  update as updateBook,
-  get as getBook,
-} from "./api/BooksAPI";
-import { trackPromise } from "react-promise-tracker";
+import React, { useEffect, useState } from "react";
+import { getAll as getAllBooks } from "./api/BooksAPI";
 import { useRouter } from "next/router";
-import { useSelector, useDispatch } from "react-redux";
-import type { RootState } from "../store/store";
+import { useDispatch } from "react-redux";
 import { displayHomePageBooks } from "../store/book/bookSlice";
 
 const HomePage = () => {
   const router = useRouter();
+  const [spinnerVisible, setSpinnerVisible] = useState(false);
 
   const dispatch = useDispatch();
   useEffect(() => {
     async function fetchBooks() {
+      setSpinnerVisible(true);
       try {
         const response = await getAllBooks();
         const action = {
@@ -26,6 +22,7 @@ const HomePage = () => {
       } catch (err) {
         console.log(err);
       }
+      setSpinnerVisible(false);
     }
 
     fetchBooks();
@@ -40,9 +37,15 @@ const HomePage = () => {
           <h1>MyReads</h1>
         </div>
         <div className="list-books-content">
-          <HomeBookListing title="Currently Reading" />
-          <HomeBookListing title="Read" />
-          <HomeBookListing title="Want To Read" />
+          <HomeBookListing
+            title="Currently Reading"
+            spinnerVisible={spinnerVisible}
+          />
+          <HomeBookListing title="Read" spinnerVisible={spinnerVisible} />
+          <HomeBookListing
+            title="Want To Read"
+            spinnerVisible={spinnerVisible}
+          />
         </div>
         <div className="open-search">
           <button onClick={() => router.push("/search")}>Add a book</button>

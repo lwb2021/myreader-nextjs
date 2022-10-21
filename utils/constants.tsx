@@ -4,5 +4,3 @@ export const CATEGORIES = [
   "wantToRead",
   "searchResult",
 ];
-
-export const BOOKSET = "bookSet";
