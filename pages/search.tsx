@@ -54,50 +54,43 @@ const SearchPage = () => {
   }
 
   const debouncedSearch = useRef(
-    debounce(
-      async (query: string) => {
-        // Clear the previous result
-        dispatch(clearSearchedBooks());
+    debounce(async (query: string) => {
+      // Clear the previous result
+      dispatch(clearSearchedBooks());
 
-        setBlankMsg("");
+      setBlankMsg("");
 
-        // Handle emtpy search
-        if (!query) {
-          return;
-        }
-
-        // Show spinner
-        dispatch(switchSearchSpinnerVisible());
-
-        try {
-          let response = checkLocalStorage(query);
-          if (!response) {
-            response = await search(query);
-          }
-
-          // Handle no search result
-          if (response.error) {
-            setBlankMsg(BLANK_MSG);
-          } else {
-            updateLocalStorage(query, response);
-            const action = {
-              query: query,
-              response: response,
-            };
-            dispatch(displaySearchPageBooks(action));
-          }
-        } catch (err) {
-          console.log(err);
-        }
-        // Hide spinner
-        dispatch(switchSearchSpinnerVisible());
-      },
-      200,
-      {
-        leading: false,
-        trailing: true,
+      // Handle emtpy search
+      if (!query) {
+        return;
       }
-    )
+
+      // Show spinner
+      dispatch(switchSearchSpinnerVisible());
+
+      try {
+        let response = checkLocalStorage(query);
+        if (!response) {
+          response = await search(query);
+        }
+
+        // Handle no search result
+        if (response.error) {
+          setBlankMsg(BLANK_MSG);
+        } else {
+          updateLocalStorage(query, response);
+          const action = {
+            query: query,
+            response: response,
+          };
+          dispatch(displaySearchPageBooks(action));
+        }
+      } catch (err) {
+        console.log(err);
+      }
+      // Hide spinner
+      dispatch(switchSearchSpinnerVisible());
+    }, 200)
   ).current;
 
   useEffect(() => {
