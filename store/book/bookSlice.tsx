@@ -15,7 +15,9 @@ export interface BookStateProps {
   readBooks: BookProps[];
   wantToReadBooks: BookProps[];
   searchedBooks: BookProps[];
-  firstTimeLoad: Boolean;
+  firstTimeLoad: boolean;
+  homeSpinnerVisible: boolean;
+  searchSpinnerVisible: boolean;
 }
 
 const initialState: BookStateProps = {
@@ -24,8 +26,9 @@ const initialState: BookStateProps = {
   wantToReadBooks: [],
   searchedBooks: [],
   firstTimeLoad: true,
+  homeSpinnerVisible: false,
+  searchSpinnerVisible: false,
 };
-
 export const move = createAsyncThunk("book/move", async (data: any) => {
   const { book, shelf } = data;
   try {
@@ -97,6 +100,15 @@ export const bookSlice = createSlice({
     clearSearchedBooks: (state = initialState) => {
       state.searchedBooks = [];
     },
+    switchFirstTimeLoad: (state = initialState) => {
+      state.firstTimeLoad = !state.firstTimeLoad;
+    },
+    switchHomeSpinnerVisible: (state = initialState) => {
+      state.homeSpinnerVisible = !state.homeSpinnerVisible;
+    },
+    switchSearchSpinnerVisible: (state = initialState) => {
+      state.searchSpinnerVisible = !state.searchSpinnerVisible;
+    },
   },
 });
 
@@ -105,6 +117,9 @@ export const {
   displayHomePageBooks,
   displaySearchPageBooks,
   clearSearchedBooks,
+  switchFirstTimeLoad,
+  switchHomeSpinnerVisible,
+  switchSearchSpinnerVisible,
 } = bookSlice.actions;
 
 export default bookSlice.reducer;

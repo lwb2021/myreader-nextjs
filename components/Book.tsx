@@ -1,20 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { CATEGORIES } from "../utils/constants";
 import Image from "next/image";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
-import type { AppDispatch, RootState } from "../store/store";
-import {
-  displayHomePageBooks,
-  move,
-  clearSearchedBooks,
-} from "../store/book/bookSlice";
-import { current } from "@reduxjs/toolkit";
-import {
-  getAll as getAllBooks,
-  update as updateBook,
-  get as getBook,
-} from "../pages/api/BooksAPI";
+import { displayHomePageBooks, move } from "../store/book/bookSlice";
+import { getAll as getAllBooks } from "../pages/api/BooksAPI";
 
 export interface BookProps {
   id: string;

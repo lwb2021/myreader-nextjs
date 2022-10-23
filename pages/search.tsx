@@ -6,38 +6,98 @@ import { useRouter } from "next/router";
 import {
   clearSearchedBooks,
   displaySearchPageBooks,
+  switchSearchSpinnerVisible,
 } from "../store/book/bookSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { debounce } from "lodash";
 import { Spinner } from "../components/Spinner";
+import type { RootState } from "../store/store";
 
 const SearchPage = () => {
   const router = useRouter();
   const [blankMsg, setBlankMsg] = useState("");
-  const [spinnerVisible, setSpinnerVisible] = useState(false);
   const BLANK_MSG = "No result found.";
+  const { searchSpinnerVisible } = useSelector(
+    (state: RootState) => state.book
+  );
 
   const dispatch = useDispatch();
 
+  function checkLocalStorage(query: string) {
+    let searchMap = new Map(
+      JSON.parse(localStorage.getItem("searchMap") || "[]")
+    );
+    if (searchMap.has(query)) {
+      return JSON.parse(searchMap.get(query) as string);
+    } else {
+      return null;
+    }
+  }
+
+  function updateLocalStorage(query: string, response: string) {
+    let searchMap = localStorage.getItem("searchMap")
+      ? new Map(JSON.parse(localStorage.getItem("searchMap") || "[]"))
+      : new Map();
+
+    // Check size
+    const size = Array.from(searchMap.entries()).length;
+    if (size >= 10) {
+      const key = Array.from(searchMap.entries())[0][0];
+      searchMap.delete(key);
+    }
+
+    searchMap.set(query, JSON.stringify(response));
+    localStorage.setItem(
+      "searchMap",
+      JSON.stringify(Array.from(searchMap.entries()))
+    );
+  }
+
   const debouncedSearch = useRef(
-    debounce(async (query: string) => {
-      setSpinnerVisible(true);
-      try {
+    debounce(
+      async (query: string) => {
         // Clear the previous result
-        setBlankMsg("");
         dispatch(clearSearchedBooks());
-        const response = await search(query);
-        const action = {
-          response: response,
-        };
-        dispatch(displaySearchPageBooks(action));
-      } catch (err) {
-        // Leave it blank if the search query is empty
-        if (query) setBlankMsg(BLANK_MSG);
-        console.log(err);
+
+        setBlankMsg("");
+
+        // Handle emtpy search
+        if (!query) {
+          return;
+        }
+
+        // Show spinner
+        dispatch(switchSearchSpinnerVisible());
+
+        try {
+          let response = checkLocalStorage(query);
+          if (!response) {
+            response = await search(query);
+          }
+
+          // Handle no search result
+          if (response.error) {
+            setBlankMsg(BLANK_MSG);
+          } else {
+            updateLocalStorage(query, response);
+            const action = {
+              query: query,
+              response: response,
+            };
+            dispatch(displaySearchPageBooks(action));
+          }
+        } catch (err) {
+          console.log(err);
+        }
+        // Hide spinner
+        dispatch(switchSearchSpinnerVisible());
+      },
+      200,
+      {
+        leading: false,
+        trailing: true,
       }
-      setSpinnerVisible(false);
-    }, 500)
+    )
   ).current;
 
   useEffect(() => {
@@ -95,8 +155,8 @@ const SearchPage = () => {
       <div className="search-books-results">
         <div className="bookshelf">
           <h3>{blankMsg}</h3>
+          <Spinner spinnerVisible={searchSpinnerVisible} />
           <SearchBookListing />
-          <Spinner spinnerVisible={spinnerVisible} />
         </div>
       </div>
     </div>

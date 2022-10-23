@@ -1,18 +1,24 @@
 import HomeBookListing from "../components/HomeBookListing";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { getAll as getAllBooks } from "./api/BooksAPI";
 import { useRouter } from "next/router";
-import { useDispatch } from "react-redux";
-import { displayHomePageBooks } from "../store/book/bookSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  displayHomePageBooks,
+  switchFirstTimeLoad,
+  switchHomeSpinnerVisible,
+} from "../store/book/bookSlice";
+import type { RootState } from "../store/store";
 
 const HomePage = () => {
   const router = useRouter();
-  const [spinnerVisible, setSpinnerVisible] = useState(false);
+  const { firstTimeLoad, homeSpinnerVisible } = useSelector(
+    (state: RootState) => state.book
+  );
 
   const dispatch = useDispatch();
   useEffect(() => {
     async function fetchBooks() {
-      setSpinnerVisible(true);
       try {
         const response = await getAllBooks();
         const action = {
@@ -22,10 +28,17 @@ const HomePage = () => {
       } catch (err) {
         console.log(err);
       }
-      setSpinnerVisible(false);
     }
-
-    fetchBooks();
+    if (firstTimeLoad) {
+      // show spinner
+      dispatch(switchHomeSpinnerVisible());
+      // switch firstTimeLoad
+      dispatch(switchFirstTimeLoad());
+      fetchBooks().then(() => {
+        // hide spinner
+        dispatch(switchHomeSpinnerVisible());
+      });
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -39,12 +52,12 @@ const HomePage = () => {
         <div className="list-books-content">
           <HomeBookListing
             title="Currently Reading"
-            spinnerVisible={spinnerVisible}
+            spinnerVisible={homeSpinnerVisible}
           />
-          <HomeBookListing title="Read" spinnerVisible={spinnerVisible} />
+          <HomeBookListing title="Read" spinnerVisible={homeSpinnerVisible} />
           <HomeBookListing
             title="Want To Read"
-            spinnerVisible={spinnerVisible}
+            spinnerVisible={homeSpinnerVisible}
           />
         </div>
         <div className="open-search">
