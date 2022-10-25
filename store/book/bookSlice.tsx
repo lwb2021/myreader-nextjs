@@ -1,4 +1,4 @@
-import { createSlice, current, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { CATEGORIES } from "../../utils/constants";
 import { update } from "../../pages/api/BooksAPI";
@@ -17,6 +17,7 @@ export interface BookStateProps {
   firstTimeLoad: boolean;
   homeSpinnerVisible: boolean;
   searchSpinnerVisible: boolean;
+  isPageReloaded: boolean;
 }
 
 const initialState: BookStateProps = {
@@ -26,6 +27,7 @@ const initialState: BookStateProps = {
   firstTimeLoad: true,
   homeSpinnerVisible: false,
   searchSpinnerVisible: false,
+  isPageReloaded: false,
 };
 export const move = createAsyncThunk("book/move", async (data: any) => {
   const { book, shelf } = data;
@@ -80,6 +82,12 @@ export const bookSlice = createSlice({
     switchSearchSpinnerVisible: (state = initialState) => {
       state.searchSpinnerVisible = !state.searchSpinnerVisible;
     },
+    switchReloadOff: (state = initialState) => {
+      state.isPageReloaded = false;
+    },
+    switchReloadOn: (state = initialState) => {
+      state.isPageReloaded = true;
+    },
   },
 });
 
@@ -89,6 +97,8 @@ export const {
   switchFirstTimeLoad,
   switchHomeSpinnerVisible,
   switchSearchSpinnerVisible,
+  switchReloadOn,
+  switchReloadOff,
 } = bookSlice.actions;
 
 export default bookSlice.reducer;

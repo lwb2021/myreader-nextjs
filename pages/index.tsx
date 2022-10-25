@@ -7,15 +7,20 @@ import {
   displayHomePageBooks,
   switchFirstTimeLoad,
   switchHomeSpinnerVisible,
+  switchReloadOn,
+  switchReloadOff,
 } from "../store/book/bookSlice";
 import type { RootState } from "../store/store";
 
 const HomePage = () => {
   const router = useRouter();
-  const { firstTimeLoad, homeSpinnerVisible } = useSelector(
+  const { firstTimeLoad, homeSpinnerVisible, isPageReloaded } = useSelector(
     (state: RootState) => state.book
   );
-
+  window.addEventListener("beforeunload", () => {
+    // Mark it since it is a page refresh
+    dispatch(switchReloadOn());
+  });
   const dispatch = useDispatch();
   useEffect(() => {
     async function fetchBooks() {
@@ -29,11 +34,18 @@ const HomePage = () => {
         console.log(err);
       }
     }
-    if (firstTimeLoad) {
+    if (firstTimeLoad || isPageReloaded) {
       // show spinner
       dispatch(switchHomeSpinnerVisible());
-      // switch firstTimeLoad
-      dispatch(switchFirstTimeLoad());
+
+      // switch firstTimeLoad off
+      if (firstTimeLoad) {
+        dispatch(switchFirstTimeLoad());
+      }
+
+      // switch reload off
+      dispatch(switchReloadOff());
+
       fetchBooks().then(() => {
         // hide spinner
         dispatch(switchHomeSpinnerVisible());
