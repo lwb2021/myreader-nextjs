@@ -14,7 +14,6 @@ export interface BookStateProps {
   currentlyReadBooks: BookProps[];
   readBooks: BookProps[];
   wantToReadBooks: BookProps[];
-  searchedBooks: BookProps[];
   firstTimeLoad: boolean;
   homeSpinnerVisible: boolean;
   searchSpinnerVisible: boolean;
@@ -24,7 +23,6 @@ const initialState: BookStateProps = {
   currentlyReadBooks: [],
   readBooks: [],
   wantToReadBooks: [],
-  searchedBooks: [],
   firstTimeLoad: true,
   homeSpinnerVisible: false,
   searchSpinnerVisible: false,
@@ -73,33 +71,6 @@ export const bookSlice = createSlice({
 
       Object.assign(state, newState);
     },
-    displaySearchPageBooks: (
-      state = initialState,
-      action: PayloadAction<any>
-    ) => {
-      const { response } = action.payload;
-      const newState: { searchedBooks: BookProps[] } = {
-        searchedBooks: [],
-      };
-      const combinedArray = [
-        ...current(state).currentlyReadBooks,
-        ...current(state).readBooks,
-        ...current(state).wantToReadBooks,
-      ];
-      response.filter((book: BookProps) => {
-        const index = combinedArray.findIndex((item) => item.id === book.id);
-        if (index === -1) {
-          newState.searchedBooks.push(book);
-        } else {
-          book.shelf = combinedArray[index].shelf;
-          newState.searchedBooks.push(book);
-        }
-      });
-      Object.assign(state, newState);
-    },
-    clearSearchedBooks: (state = initialState) => {
-      state.searchedBooks = [];
-    },
     switchFirstTimeLoad: (state = initialState) => {
       state.firstTimeLoad = !state.firstTimeLoad;
     },
@@ -115,8 +86,6 @@ export const bookSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const {
   displayHomePageBooks,
-  displaySearchPageBooks,
-  clearSearchedBooks,
   switchFirstTimeLoad,
   switchHomeSpinnerVisible,
   switchSearchSpinnerVisible,
