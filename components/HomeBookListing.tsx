@@ -36,13 +36,13 @@ const HomeBookListing = ({ title, spinnerVisible }: HomeBookListingProps) => {
         {spinnerVisible ? (
           <Spinner spinnerVisible={spinnerVisible} />
         ) : (
-          <ol className="books-grid">
+          <ul className="books-grid">
             {books.map((book: BookProps) => (
               <li key={book.id}>
                 <Book book={book} />
               </li>
             ))}
-          </ol>
+          </ul>
         )}
       </div>
     </div>

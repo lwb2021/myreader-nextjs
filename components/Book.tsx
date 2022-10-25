@@ -72,7 +72,7 @@ const Book = ({ book }: { book: BookProps }) => {
     }
     setDefaultBookStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   return (
     <div className="book">

@@ -1,21 +1,30 @@
 import React from "react";
 import Book, { BookProps } from "./Book";
-import { useSelector } from "react-redux";
-import type { RootState } from "../store/store";
+import { Spinner } from "./Spinner";
 
-const SearchBookListing = () => {
-  const { searchedBooks } = useSelector((state: RootState) => state.book);
+interface SearchBookListingProps {
+  books: BookProps[];
+  spinnerVisible: boolean;
+}
 
+const SearchBookListing = ({
+  books,
+  spinnerVisible,
+}: SearchBookListingProps) => {
   return (
     <div>
       <div className="bookshelf-books">
-        <ul className="books-grid">
-          {searchedBooks.map((book: BookProps) => (
-            <li key={book.id}>
-              <Book book={book} />
-            </li>
-          ))}
-        </ul>
+        {spinnerVisible ? (
+          <Spinner spinnerVisible={spinnerVisible} />
+        ) : (
+          <ul className="books-grid">
+            {books.map((book: BookProps) => (
+              <li key={book.id}>
+                <Book book={book} />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

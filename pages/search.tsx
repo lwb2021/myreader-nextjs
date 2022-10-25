@@ -3,50 +3,71 @@ import { search } from "./api/BooksAPI";
 import SearchBookListing from "../components/SearchBookListing";
 
 import { useRouter } from "next/router";
-import {
-  clearSearchedBooks,
-  displaySearchPageBooks,
-  switchSearchSpinnerVisible,
-} from "../store/book/bookSlice";
+import { switchSearchSpinnerVisible } from "../store/book/bookSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { debounce } from "lodash";
-import { Spinner } from "../components/Spinner";
 import type { RootState } from "../store/store";
+import { BookProps } from "../components/Book";
 
 const SearchPage = () => {
   const router = useRouter();
   const [blankMsg, setBlankMsg] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [searchedBooks, setSearchedBooks] = useState<BookProps[]>([]);
   const BLANK_MSG = "No result found.";
-  const { searchSpinnerVisible } = useSelector(
-    (state: RootState) => state.book
-  );
+  const {
+    currentlyReadBooks,
+    readBooks,
+    wantToReadBooks,
+    searchSpinnerVisible,
+  } = useSelector((state: RootState) => state.book);
 
   const dispatch = useDispatch();
 
-  function checkLocalStorage(query: string) {
+  function markSearchedBooksVisibility(response: BookProps[]) {
+    const searchedBooks: BookProps[] = [];
+    const combinedArray = [
+      ...currentlyReadBooks,
+      ...readBooks,
+      ...wantToReadBooks,
+    ];
+    response.filter((book: BookProps) => {
+      const index = combinedArray.findIndex((item) => item.id === book.id);
+      if (index === -1) {
+        searchedBooks.push(book);
+      } else {
+        book.shelf = combinedArray[index].shelf;
+        searchedBooks.push(book);
+      }
+    });
+    return searchedBooks;
+  }
+
+  function checkLocalStorage(keyword: string) {
     let searchMap = new Map(
       JSON.parse(localStorage.getItem("searchMap") || "[]")
     );
-    if (searchMap.has(query)) {
-      return JSON.parse(searchMap.get(query) as string);
-    } else {
+    if (!searchMap.has(keyword)) {
       return null;
+    } else {
+      return JSON.parse(searchMap.get(keyword) as string);
     }
   }
 
-  function updateLocalStorage(query: string, response: string) {
+  function updateLocalStorage(keyword: string, response: string) {
     let searchMap = localStorage.getItem("searchMap")
       ? new Map(JSON.parse(localStorage.getItem("searchMap") || "[]"))
       : new Map();
 
+    searchMap.set(keyword, JSON.stringify(response));
+
     // Check size
     const size = Array.from(searchMap.entries()).length;
-    if (size >= 10) {
+    if (size > 10) {
       const key = Array.from(searchMap.entries())[0][0];
       searchMap.delete(key);
     }
 
-    searchMap.set(query, JSON.stringify(response));
     localStorage.setItem(
       "searchMap",
       JSON.stringify(Array.from(searchMap.entries()))
@@ -54,37 +75,36 @@ const SearchPage = () => {
   }
 
   const debouncedSearch = useRef(
-    debounce(async (query: string) => {
+    debounce(async (keyword: string) => {
       // Clear the previous result
-      dispatch(clearSearchedBooks());
-
+      setSearchedBooks([]);
       setBlankMsg("");
 
       // Handle emtpy search
-      if (!query) {
+      if (!keyword) {
         return;
       }
 
       // Show spinner
       dispatch(switchSearchSpinnerVisible());
-
       try {
-        let response = checkLocalStorage(query);
-        if (!response) {
-          response = await search(query);
+        const storedBooks = checkLocalStorage(keyword);
+        if (storedBooks) {
+          // Display the books stored in the localStorage
+          setSearchedBooks(storedBooks);
         }
-
-        // Handle no search result
+        const response = await search(keyword);
         if (response.error) {
           setBlankMsg(BLANK_MSG);
-        } else {
-          updateLocalStorage(query, response);
-          const action = {
-            query: query,
-            response: response,
-          };
-          dispatch(displaySearchPageBooks(action));
+          dispatch(switchSearchSpinnerVisible());
+          return;
         }
+
+        // Update localStorage with the most recent response
+        updateLocalStorage(keyword, response);
+
+        // Display most updated search result
+        setSearchedBooks(markSearchedBooksVisibility(response));
       } catch (err) {
         console.log(err);
       }
@@ -94,27 +114,12 @@ const SearchPage = () => {
   ).current;
 
   useEffect(() => {
-    // Clear the previous result
-    setBlankMsg("");
-    dispatch(clearSearchedBooks());
-
+    debouncedSearch(keyword);
     return () => {
       debouncedSearch.cancel();
     };
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Get the search name from the input
-  function getSearchName() {
-    return (document.getElementById("input") as HTMLInputElement).value;
-  }
-
-  // Handle search
-  function handleSearch() {
-    const searchName = getSearchName();
-    debouncedSearch(searchName);
-  }
+  }, [keyword]);
 
   return (
     <div className="search-books">
@@ -140,7 +145,8 @@ const SearchPage = () => {
             type="text"
             id="input"
             placeholder="Search by title or author"
-            onChange={handleSearch}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
             maxLength={30}
           />
         </div>
@@ -148,8 +154,10 @@ const SearchPage = () => {
       <div className="search-books-results">
         <div className="bookshelf">
           <h3>{blankMsg}</h3>
-          <Spinner spinnerVisible={searchSpinnerVisible} />
-          <SearchBookListing />
+          <SearchBookListing
+            books={searchedBooks}
+            spinnerVisible={searchSpinnerVisible}
+          />
         </div>
       </div>
     </div>
