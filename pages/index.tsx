@@ -17,12 +17,14 @@ const HomePage = () => {
   const { firstTimeLoad, homeSpinnerVisible, isPageReloaded } = useSelector(
     (state: RootState) => state.book
   );
-  window.addEventListener("beforeunload", () => {
-    // Mark it since it is a page refresh
-    dispatch(switchReloadOn());
-  });
+
   const dispatch = useDispatch();
   useEffect(() => {
+    // Switch on isPageReloaded so that refresh causes fetchBooks to run
+    window.addEventListener("beforeunload", () => {
+      dispatch(switchReloadOn());
+    });
+
     async function fetchBooks() {
       try {
         const response = await getAllBooks();
@@ -34,6 +36,7 @@ const HomePage = () => {
         console.log(err);
       }
     }
+
     if (firstTimeLoad || isPageReloaded) {
       // show spinner
       dispatch(switchHomeSpinnerVisible());
