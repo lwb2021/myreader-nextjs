@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { search } from "./api/BooksAPI";
+import { searchBook } from "./api/BooksAPI";
 import SearchBookListing from "../components/SearchBookListing";
 
 import { useRouter } from "next/router";
-import { switchSearchSpinnerVisible } from "../store/book/bookSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { debounce } from "lodash";
 import type { RootState } from "../store/store";
 import { BookProps } from "../components/Book";
@@ -14,15 +13,12 @@ const SearchPage = () => {
   const [blankMsg, setBlankMsg] = useState("");
   const [keyword, setKeyword] = useState("");
   const [searchedBooks, setSearchedBooks] = useState<BookProps[]>([]);
+  const [getAllBooksLoading, setGetAllBooksLoading] = useState(false);
   const BLANK_MSG = "No result found.";
-  const {
-    currentlyReadBooks,
-    readBooks,
-    wantToReadBooks,
-    searchSpinnerVisible,
-  } = useSelector((state: RootState) => state.book);
-
-  const dispatch = useDispatch();
+  const SEARCHMAP_NAME = "searchMap";
+  const { currentlyReadBooks, readBooks, wantToReadBooks } = useSelector(
+    (state: RootState) => state.book
+  );
 
   function markSearchedBooksVisibility(response: BookProps[]) {
     const searchedBooks: BookProps[] = [];
@@ -45,7 +41,7 @@ const SearchPage = () => {
 
   function checkLocalStorage(keyword: string) {
     let searchMap = new Map(
-      JSON.parse(localStorage.getItem("searchMap") || "[]")
+      JSON.parse(localStorage.getItem(SEARCHMAP_NAME) || "[]")
     );
     if (!searchMap.has(keyword)) {
       return null;
@@ -55,8 +51,8 @@ const SearchPage = () => {
   }
 
   function updateLocalStorage(keyword: string, response: string) {
-    let searchMap = localStorage.getItem("searchMap")
-      ? new Map(JSON.parse(localStorage.getItem("searchMap") || "[]"))
+    let searchMap = localStorage.getItem(SEARCHMAP_NAME)
+      ? new Map(JSON.parse(localStorage.getItem(SEARCHMAP_NAME) || "[]"))
       : new Map();
 
     searchMap.set(keyword, JSON.stringify(response));
@@ -69,7 +65,7 @@ const SearchPage = () => {
     }
 
     localStorage.setItem(
-      "searchMap",
+      SEARCHMAP_NAME,
       JSON.stringify(Array.from(searchMap.entries()))
     );
   }
@@ -85,18 +81,21 @@ const SearchPage = () => {
         return;
       }
 
-      // Show spinner
-      dispatch(switchSearchSpinnerVisible());
+      const storedBooks = checkLocalStorage(keyword);
+
       try {
-        const storedBooks = checkLocalStorage(keyword);
         if (storedBooks) {
           // Display the books stored in the localStorage
           setSearchedBooks(storedBooks);
+        } else {
+          // Show spinner as it will make a request to the server
+          setGetAllBooksLoading((prevState) => !prevState);
         }
-        const response = await search(keyword);
+
+        const response = await searchBook(keyword);
         if (response.error) {
           setBlankMsg(BLANK_MSG);
-          dispatch(switchSearchSpinnerVisible());
+          setGetAllBooksLoading((prevState) => !prevState);
           return;
         }
 
@@ -109,7 +108,7 @@ const SearchPage = () => {
         console.log(err);
       }
       // Hide spinner
-      dispatch(switchSearchSpinnerVisible());
+      if (!storedBooks) setGetAllBooksLoading((prevState) => !prevState);
     }, 200)
   ).current;
 
@@ -156,7 +155,7 @@ const SearchPage = () => {
           <h3>{blankMsg}</h3>
           <SearchBookListing
             books={searchedBooks}
-            spinnerVisible={searchSpinnerVisible}
+            getAllBooksLoading={getAllBooksLoading}
           />
         </div>
       </div>

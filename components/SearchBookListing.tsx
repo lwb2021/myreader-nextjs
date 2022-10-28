@@ -4,18 +4,18 @@ import { Spinner } from "./Spinner";
 
 interface SearchBookListingProps {
   books: BookProps[];
-  spinnerVisible: boolean;
+  getAllBooksLoading: boolean;
 }
 
 const SearchBookListing = ({
   books,
-  spinnerVisible,
+  getAllBooksLoading,
 }: SearchBookListingProps) => {
   return (
     <div>
       <div className="bookshelf-books">
-        {spinnerVisible ? (
-          <Spinner spinnerVisible={spinnerVisible} />
+        {getAllBooksLoading ? (
+          <Spinner getAllBooksLoading={getAllBooksLoading} />
         ) : (
           <ul className="books-grid">
             {books.map((book: BookProps) => (

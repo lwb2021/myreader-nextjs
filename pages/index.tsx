@@ -1,60 +1,49 @@
 import HomeBookListing from "../components/HomeBookListing";
-import React, { useEffect } from "react";
-import { getAll as getAllBooks } from "./api/BooksAPI";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
 import {
-  displayHomePageBooks,
-  switchFirstTimeLoad,
-  switchHomeSpinnerVisible,
+  getHomePageBooks,
   switchReloadOn,
   switchReloadOff,
+  switchFirstTimeLoad,
 } from "../store/book/bookSlice";
-import type { RootState } from "../store/store";
 
 const HomePage = () => {
   const router = useRouter();
-  const { firstTimeLoad, homeSpinnerVisible, isPageReloaded } = useSelector(
-    (state: RootState) => state.book
+  const { firstTimeLoad, isPageReloaded } = useAppSelector(
+    (state) => state.book
   );
+  const [getAllBooksLoading, setGetAllBooksLoading] = useState(false);
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
-    // Switch on isPageReloaded so that refresh causes fetchBooks to run
+    // Switch on isPageReloaded so that next refresh will trigger get-all-books API
     window.addEventListener("beforeunload", () => {
       dispatch(switchReloadOn());
     });
 
-    async function fetchBooks() {
-      try {
-        const response = await getAllBooks();
-        const action = {
-          response: response,
-        };
-        dispatch(displayHomePageBooks(action));
-      } catch (err) {
-        console.log(err);
-      }
-    }
-
+    console.log(firstTimeLoad, isPageReloaded);
     if (firstTimeLoad || isPageReloaded) {
-      // show spinner
-      dispatch(switchHomeSpinnerVisible());
-
-      // switch firstTimeLoad off
       if (firstTimeLoad) {
-        dispatch(switchFirstTimeLoad());
+        // Show spinner at first time load
+        setGetAllBooksLoading(true);
       }
 
       // switch reload off
       dispatch(switchReloadOff());
 
-      fetchBooks().then(() => {
-        // hide spinner
-        dispatch(switchHomeSpinnerVisible());
-      });
-    }
+      // Get all home page books
+      dispatch(getHomePageBooks());
 
+      if (firstTimeLoad) {
+        // hide spinner
+        setGetAllBooksLoading(false);
+        // switch firstTimeLoad off
+        dispatch(switchFirstTimeLoad());
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -67,12 +56,15 @@ const HomePage = () => {
         <div className="list-books-content">
           <HomeBookListing
             title="Currently Reading"
-            spinnerVisible={homeSpinnerVisible}
+            getAllBooksLoading={getAllBooksLoading}
           />
-          <HomeBookListing title="Read" spinnerVisible={homeSpinnerVisible} />
+          <HomeBookListing
+            title="Read"
+            getAllBooksLoading={getAllBooksLoading}
+          />
           <HomeBookListing
             title="Want To Read"
-            spinnerVisible={homeSpinnerVisible}
+            getAllBooksLoading={getAllBooksLoading}
           />
         </div>
         <div className="open-search">

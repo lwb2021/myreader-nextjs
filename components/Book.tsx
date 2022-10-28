@@ -3,8 +3,8 @@ import { CATEGORIES } from "../utils/constants";
 import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
-import { displayHomePageBooks, move } from "../store/book/bookSlice";
-import { getAll as getAllBooks } from "../pages/api/BooksAPI";
+import { getHomePageBooks, updateShelf } from "../store/book/bookSlice";
+import { getAllBooks } from "../pages/api/BooksAPI";
 
 export interface BookProps {
   id: string;
@@ -29,7 +29,7 @@ const Book = ({ book }: { book: BookProps }) => {
       book,
       shelf,
     };
-    await dispatch(move(moveAction));
+    await dispatch(updateShelf(moveAction));
 
     // Mark the book as selected
     if (router.pathname === "/search") {
@@ -40,7 +40,7 @@ const Book = ({ book }: { book: BookProps }) => {
     const action = {
       response: response,
     };
-    dispatch(displayHomePageBooks(action));
+    dispatch(getHomePageBooks());
   }
 
   function setBookVisibility() {

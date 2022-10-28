@@ -1,7 +1,11 @@
 import React from "react";
 import { ThreeDots } from "react-loader-spinner";
 
-export const Spinner = ({ spinnerVisible }: { spinnerVisible: boolean }) => {
+export const Spinner = ({
+  getAllBooksLoading,
+}: {
+  getAllBooksLoading: boolean;
+}) => {
   return (
     <div className="spinner">
       <ThreeDots
@@ -10,7 +14,7 @@ export const Spinner = ({ spinnerVisible }: { spinnerVisible: boolean }) => {
         radius="10"
         color="#2e7c31"
         ariaLabel="three-dots-loading"
-        visible={spinnerVisible}
+        visible={getAllBooksLoading}
       />
     </div>
   );

@@ -7,14 +7,16 @@ import type { RootState } from "../store/store";
 
 interface HomeBookListingProps {
   title: string;
-  spinnerVisible: boolean;
+  getAllBooksLoading: boolean;
 }
 
-const HomeBookListing = ({ title, spinnerVisible }: HomeBookListingProps) => {
+const HomeBookListing = ({
+  title,
+  getAllBooksLoading,
+}: HomeBookListingProps) => {
   const { currentlyReadBooks, readBooks, wantToReadBooks } = useSelector(
     (state: RootState) => state.book
   );
-
   // Prepare the books to be displayed
   let books: BookProps[] = [];
   switch (title) {
@@ -33,8 +35,8 @@ const HomeBookListing = ({ title, spinnerVisible }: HomeBookListingProps) => {
     <div className="bookshelf">
       <h2 className="bookshelf-title">{title}</h2>
       <div className="bookshelf-books">
-        {spinnerVisible ? (
-          <Spinner spinnerVisible={spinnerVisible} />
+        {getAllBooksLoading ? (
+          <Spinner getAllBooksLoading={getAllBooksLoading} />
         ) : (
           <ul className="books-grid">
             {books.map((book: BookProps) => (

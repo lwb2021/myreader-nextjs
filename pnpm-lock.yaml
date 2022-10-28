@@ -6,6 +6,7 @@ specifiers:
   '@types/node': 18.8.2
   '@types/react': 18.0.21
   '@types/react-dom': 18.0.6
+  '@types/react-redux': ^7.1.24
   eslint: 8.24.0
   eslint-config-next: 12.3.1
   next: 12.3.1
@@ -15,20 +16,20 @@ specifiers:
   react-loader-spinner: ^5.3.4
   react-promise-tracker: ^2.1.0
   react-redux: ^8.0.4
-  redux: ^4.2.0
   redux-persist: ^6.0.0
   redux-thunk: ^2.4.1
   typescript: 4.8.4
 
 dependencies:
   '@reduxjs/toolkit': 1.8.6_kuo2ie247izvzll3jejufdtq3q
+  '@types/react-redux': 7.1.24
   next: 12.3.1_biqbaboplfbrettd7655fr4n2y
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-loader-spinner: 5.3.4_biqbaboplfbrettd7655fr4n2y
   react-promise-tracker: 2.1.0_react@18.2.0
-  redux-persist: 6.0.0_react@18.2.0+redux@4.2.0
-  redux-thunk: 2.4.1_redux@4.2.0
+  redux-persist: 6.0.0_react@18.2.0
+  redux-thunk: 2.4.1
 
 devDependencies:
   '@types/lodash': 4.14.186
@@ -38,8 +39,7 @@ devDependencies:
   eslint: 8.24.0
   eslint-config-next: 12.3.1_ypn2ylkkyfa5i233caldtndbqa
   next-redux-wrapper: 8.0.0_wnml2u2rjvrq3plu2g7enler3e
-  react-redux: 8.0.4_yfr4m6wk75wdra335rld4tkrbu
-  redux: 4.2.0
+  react-redux: 8.0.4_5uumaiclxbdbzaqafclbf6maf4
   typescript: 4.8.4
 
 packages:
@@ -414,7 +414,7 @@ packages:
     dependencies:
       immer: 9.0.15
       react: 18.2.0
-      react-redux: 8.0.4_yfr4m6wk75wdra335rld4tkrbu
+      react-redux: 8.0.4_5uumaiclxbdbzaqafclbf6maf4
       redux: 4.2.0
       redux-thunk: 2.4.1_redux@4.2.0
       reselect: 4.1.6
@@ -454,6 +454,15 @@ packages:
     resolution: {integrity: sha512-/5OFZgfIPSwy+YuIBP/FgJnQnsxhZhjjrnxudMddeblOouIodEQ75X14Rr4wGSG/bknL+Omy9iWlLo1u/9GzAA==}
     dependencies:
       '@types/react': 18.0.21
+
+  /@types/react-redux/7.1.24:
+    resolution: {integrity: sha512-7FkurKcS1k0FHZEtdbbgN8Oc6b+stGSfZYjQGicofJ0j4U0qIn/jaSvnP2pLwZKiai3/17xqqxkkrxTgN8UNbQ==}
+    dependencies:
+      '@types/hoist-non-react-statics': 3.3.1
+      '@types/react': 18.0.21
+      hoist-non-react-statics: 3.3.2
+      redux: 4.2.0
+    dev: false
 
   /@types/react/18.0.21:
     resolution: {integrity: sha512-7QUCOxvFgnD5Jk8ZKlUAhVcRj7GuJRjnjjiY/IUBWKgOlnvDvTMLD4RTF7NPyVmbRhNrbomZiOepg7M/2Kj1mA==}
@@ -1669,7 +1678,7 @@ packages:
     dependencies:
       next: 12.3.1_biqbaboplfbrettd7655fr4n2y
       react: 18.2.0
-      react-redux: 8.0.4_yfr4m6wk75wdra335rld4tkrbu
+      react-redux: 8.0.4_5uumaiclxbdbzaqafclbf6maf4
     dev: true
 
   /next/12.3.1_biqbaboplfbrettd7655fr4n2y:
@@ -1914,7 +1923,7 @@ packages:
       react: 18.2.0
     dev: false
 
-  /react-redux/8.0.4_yfr4m6wk75wdra335rld4tkrbu:
+  /react-redux/8.0.4_5uumaiclxbdbzaqafclbf6maf4:
     resolution: {integrity: sha512-yMfQ7mX6bWuicz2fids6cR1YT59VTuT8MKyyE310wJQlINKENCeT1UcPdEiX6znI5tF8zXyJ/VYvDgeGuaaNwQ==}
     peerDependencies:
       '@types/react': ^16.8 || ^17.0 || ^18.0
@@ -1944,7 +1953,6 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-is: 18.2.0
-      redux: 4.2.0
       use-sync-external-store: 1.2.0_react@18.2.0
 
   /react/18.2.0:
@@ -1953,7 +1961,7 @@ packages:
     dependencies:
       loose-envify: 1.4.0
 
-  /redux-persist/6.0.0_react@18.2.0+redux@4.2.0:
+  /redux-persist/6.0.0_react@18.2.0:
     resolution: {integrity: sha512-71LLMbUq2r02ng2We9S215LtPu3fY0KgaGE0k8WRgl6RkqxtGfl7HUozz1Dftwsb0D/5mZ8dwAaPbtnzfvbEwQ==}
     peerDependencies:
       react: '>=16'
@@ -1963,7 +1971,12 @@ packages:
         optional: true
     dependencies:
       react: 18.2.0
-      redux: 4.2.0
+    dev: false
+
+  /redux-thunk/2.4.1:
+    resolution: {integrity: sha512-OOYGNY5Jy2TWvTL1KgAlVy6dcx3siPJ1wTq741EPyUKfn6W6nChdICjZwCd0p8AZBs5kWpZlbkXW2nE/zjUa+Q==}
+    peerDependencies:
+      redux: ^4
     dev: false
 
   /redux-thunk/2.4.1_redux@4.2.0:
@@ -1978,6 +1991,7 @@ packages:
     resolution: {integrity: sha512-oSBmcKKIuIR4ME29/AeNUnl5L+hvBq7OaJWzaptTQJAntaPvxIJqfnjbaEiCzzaIz+XmVILfqAM3Ob0aXLPfjA==}
     dependencies:
       '@babel/runtime': 7.19.0
+    dev: false
 
   /regenerator-runtime/0.13.9:
     resolution: {integrity: sha512-p3VT+cOEgxFsRRA9X4lkI1E+k2/CtnKtU4gcxyaCUreilL/vqI6CdZ3wxVUx3UOUg+gnUOQQcRI7BmSI656MYA==}

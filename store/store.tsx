@@ -1,9 +1,16 @@
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import {
+  configureStore,
+  ThunkAction,
+  Action,
+  combineReducers,
+} from "@reduxjs/toolkit";
 import bookReducer from "./book/bookSlice";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
 import thunk from "redux-thunk";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
+// TODO: why?
+import * as reduxThunk from "redux-thunk/extend-redux";
 
 const rootReducer = combineReducers({
   book: bookReducer,
