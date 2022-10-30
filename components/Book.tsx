@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
 import { getHomePageBooks, updateShelf } from "../store/book/bookSlice";
-import { getAllBooks } from "../pages/api/BooksAPI";
 
 export interface BookProps {
   id: string;
@@ -35,11 +34,7 @@ const Book = ({ book }: { book: BookProps }) => {
     if (router.pathname === "/search") {
       setBookVisibility();
     }
-    // Update home book listing information
-    const response = await getAllBooks();
-    const action = {
-      response: response,
-    };
+
     dispatch(getHomePageBooks());
   }
 

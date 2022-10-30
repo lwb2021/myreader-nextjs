@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "../../store/store";
 import { CATEGORIES } from "../../utils/constants";
 import { updateBook, getAllBooks } from "../../pages/api/BooksAPI";
 import { BookProps } from "../../components/Book";
@@ -8,11 +7,6 @@ interface newStateProps {
   currentlyReadBooks: BookProps[];
   readBooks: BookProps[];
   wantToReadBooks: BookProps[];
-}
-
-interface ValidationErrors {
-  errorMessage: string;
-  field_errors: Record<string, string>;
 }
 
 export interface BookStateProps {
@@ -33,18 +27,15 @@ const initialState: BookStateProps = {
 
 export const updateShelf = createAsyncThunk(
   "reader/updateShelf",
-  async (data: any, { rejectWithValue }) => {
+  async (data: any) => {
     const { book, shelf } = data;
     try {
       // just a single element, don't put in thunk
+      // answer: it is an async call. it has to be here
       const response = await updateBook(book, shelf);
       return response;
     } catch (err: any) {
-      console.log(err);
-      console.log(err.response);
-      console.log(err.response.data);
-
-      return rejectWithValue(err.response.data);
+      return err;
     }
   }
 );
@@ -56,10 +47,7 @@ export const getHomePageBooks = createAsyncThunk(
       const response = await getAllBooks();
       return response;
     } catch (err: any) {
-      // console.log("err   ", err);
-      console.log(err);
-      // return err;
-      return rejectWithValue((await response.json()) as MyKnownError);
+      return err;
     }
   }
 );
@@ -69,7 +57,7 @@ export const readerSlice = createSlice({
   initialState,
   reducers: {
     switchFirstTimeLoad: (state = initialState) => {
-      state.firstTimeLoad = !state.firstTimeLoad;
+      state.firstTimeLoad = false;
     },
     switchReloadOn: (state = initialState) => {
       state.isPageReloaded = true;
@@ -81,12 +69,8 @@ export const readerSlice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(
-        getHomePageBooks.pending,
-        (state, action: PayloadAction<any>) => {}
-      )
-      .addCase(
         getHomePageBooks.fulfilled,
-        (state, action: PayloadAction<any>) => {
+        (state, action: PayloadAction<BookProps[]>) => {
           const newState: newStateProps = {
             currentlyReadBooks: [],
             readBooks: [],
@@ -111,21 +95,16 @@ export const readerSlice = createSlice({
           Object.assign(state, newState);
         }
       )
-      .addCase(
-        getHomePageBooks.rejected,
-        (state, action: PayloadAction<any>) => {
-          console.log("getHomePageBooks.rejected,");
-        }
-      );
+      // TODO: correct <any>
+      .addCase(getHomePageBooks.rejected, (_, action: PayloadAction<any>) => {
+        console.log("getHomePageBooks was rejected.");
+        console.log(action);
+      });
   },
 });
 
 // Action creators are generated for each case reducer function
-export const {
-  // getHomePageBooks,
-  switchFirstTimeLoad,
-  switchReloadOn,
-  switchReloadOff,
-} = readerSlice.actions;
+export const { switchFirstTimeLoad, switchReloadOn, switchReloadOff } =
+  readerSlice.actions;
 
 export default readerSlice.reducer;

@@ -10,8 +10,10 @@ import { BookProps } from "../components/Book";
 
 const SearchPage = () => {
   const router = useRouter();
+  const urlQuery = location.search.slice(1);
+  const urlKeyword = urlQuery.split("=")[1];
   const [blankMsg, setBlankMsg] = useState("");
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(urlKeyword ? urlKeyword : "");
   const [searchedBooks, setSearchedBooks] = useState<BookProps[]>([]);
   const [getAllBooksLoading, setGetAllBooksLoading] = useState(false);
   const BLANK_MSG = "No result found.";
@@ -109,16 +111,18 @@ const SearchPage = () => {
       }
       // Hide spinner
       if (!storedBooks) setGetAllBooksLoading((prevState) => !prevState);
-    }, 200)
+    }, 500)
   ).current;
 
   useEffect(() => {
+    // Put the keyword in the url
+    if (keyword) router.push(`?q=${keyword}`);
     debouncedSearch(keyword);
     return () => {
       debouncedSearch.cancel();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyword]);
+  }, [keyword, router.asPath]);
 
   return (
     <div className="search-books">

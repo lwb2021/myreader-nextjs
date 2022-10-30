@@ -35,14 +35,17 @@ const HomePage = () => {
       dispatch(switchReloadOff());
 
       // Get all home page books
-      dispatch(getHomePageBooks());
+      dispatch(getHomePageBooks())
+        .unwrap()
+        .then(() => {
+          if (firstTimeLoad) {
+            // hide spinner
+            setGetAllBooksLoading(false);
 
-      if (firstTimeLoad) {
-        // hide spinner
-        setGetAllBooksLoading(false);
-        // switch firstTimeLoad off
-        dispatch(switchFirstTimeLoad());
-      }
+            // switch firstTimeLoad off
+            dispatch(switchFirstTimeLoad());
+          }
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
