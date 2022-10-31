@@ -12,16 +12,12 @@ export interface BookStateProps {
   currentlyReading: BookProps[];
   read: BookProps[];
   wantToRead: BookProps[];
-  firstTimeLoad: boolean;
-  isPageReloaded: boolean;
 }
 
 const initialState: BookStateProps = {
   currentlyReading: [],
   read: [],
   wantToRead: [],
-  firstTimeLoad: true,
-  isPageReloaded: false,
 };
 
 export const getHomePageBooks = createAsyncThunk(
@@ -39,17 +35,7 @@ export const getHomePageBooks = createAsyncThunk(
 export const readerSlice = createSlice({
   name: "reader",
   initialState,
-  reducers: {
-    switchFirstTimeLoad: (state = initialState) => {
-      state.firstTimeLoad = false;
-    },
-    switchReloadOn: (state = initialState) => {
-      state.isPageReloaded = true;
-    },
-    switchReloadOff: (state = initialState) => {
-      state.isPageReloaded = false;
-    },
-  },
+  reducers: {},
   extraReducers(builder) {
     builder
       .addCase(
@@ -67,7 +53,6 @@ export const readerSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { switchFirstTimeLoad, switchReloadOn, switchReloadOff } =
-  readerSlice.actions;
+const {} = readerSlice.actions;
 
 export default readerSlice.reducer;

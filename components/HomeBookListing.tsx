@@ -1,9 +1,8 @@
 import React from "react";
 import Book from "./Book";
 import { BookProps } from "./Book";
-import { useSelector } from "react-redux";
+import { useAppSelector } from "../app/hooks";
 import { Spinner } from "./Spinner";
-import type { RootState } from "../store/store";
 
 interface HomeBookListingProps {
   title: string;
@@ -14,8 +13,8 @@ const HomeBookListing = ({
   title,
   getAllBooksLoading,
 }: HomeBookListingProps) => {
-  const { currentlyReading, read, wantToRead } = useSelector(
-    (state: RootState) => state.book
+  const { currentlyReading, read, wantToRead } = useAppSelector(
+    (state) => state.book
   );
   // Prepare the books to be displayed
   let books: BookProps[] = [];
@@ -36,7 +35,7 @@ const HomeBookListing = ({
       <h2 className="bookshelf-title">{title}</h2>
       <div className="bookshelf-books">
         {getAllBooksLoading ? (
-          <Spinner getAllBooksLoading={getAllBooksLoading} />
+          <Spinner isVisible={getAllBooksLoading} />
         ) : (
           <ul className="books-grid">
             {books.map((book: BookProps) => (

@@ -3,10 +3,9 @@ import { searchBook } from "./api/BooksAPI";
 import SearchBookListing from "../components/SearchBookListing";
 
 import { useRouter } from "next/router";
-import { useSelector } from "react-redux";
 import { debounce } from "lodash";
-import type { RootState } from "../store/store";
 import { BookProps } from "../components/Book";
+import { useAppSelector } from "../app/hooks";
 
 const SearchPage = () => {
   const router = useRouter();
@@ -18,8 +17,8 @@ const SearchPage = () => {
   const [getAllBooksLoading, setGetAllBooksLoading] = useState(false);
   const BLANK_MSG = "No result found.";
   const SEARCHMAP_NAME = "searchMap";
-  const { currentlyReading, read, wantToRead } = useSelector(
-    (state: RootState) => state.book
+  const { currentlyReading, read, wantToRead } = useAppSelector(
+    (state) => state.book
   );
 
   function markSearchedBooksVisibility(response: BookProps[]) {
