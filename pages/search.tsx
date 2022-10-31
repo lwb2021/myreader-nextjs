@@ -18,17 +18,13 @@ const SearchPage = () => {
   const [getAllBooksLoading, setGetAllBooksLoading] = useState(false);
   const BLANK_MSG = "No result found.";
   const SEARCHMAP_NAME = "searchMap";
-  const { currentlyReadBooks, readBooks, wantToReadBooks } = useSelector(
+  const { currentlyReading, read, wantToRead } = useSelector(
     (state: RootState) => state.book
   );
 
   function markSearchedBooksVisibility(response: BookProps[]) {
     const searchedBooks: BookProps[] = [];
-    const combinedArray = [
-      ...currentlyReadBooks,
-      ...readBooks,
-      ...wantToReadBooks,
-    ];
+    const combinedArray = [...currentlyReading, ...read, ...wantToRead];
     response.filter((book: BookProps) => {
       const index = combinedArray.findIndex((item) => item.id === book.id);
       if (index === -1) {

@@ -26,7 +26,17 @@ export const get = (bookId) =>
 export const getAllBooks = () =>
   fetch(`${api}/books`, { headers })
     .then((res) => res.json())
-    .then((data) => data.books);
+    .then((data) => {
+      const response = {
+        currentlyReading: [],
+        read: [],
+        wantToRead: [],
+      };
+      data.books.filter((book) => {
+        response[book.shelf].push(book);
+      });
+      return response;
+    });
 
 export const getBooksByShelf = (shelf) =>
   fetch(`${api}/books`, { headers })

@@ -14,20 +14,20 @@ const HomeBookListing = ({
   title,
   getAllBooksLoading,
 }: HomeBookListingProps) => {
-  const { currentlyReadBooks, readBooks, wantToReadBooks } = useSelector(
+  const { currentlyReading, read, wantToRead } = useSelector(
     (state: RootState) => state.book
   );
   // Prepare the books to be displayed
   let books: BookProps[] = [];
   switch (title) {
     case "Currently Reading":
-      books = currentlyReadBooks;
+      books = currentlyReading;
       break;
     case "Read":
-      books = readBooks;
+      books = read;
       break;
     case "Want To Read":
-      books = wantToReadBooks;
+      books = wantToRead;
       break;
   }
 

@@ -24,7 +24,6 @@ const HomePage = () => {
       dispatch(switchReloadOn());
     });
 
-    console.log(firstTimeLoad, isPageReloaded);
     if (firstTimeLoad || isPageReloaded) {
       if (firstTimeLoad) {
         // Show spinner at first time load

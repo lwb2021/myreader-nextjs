@@ -4,7 +4,7 @@ import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
 import thunk from "redux-thunk";
 import hardSet from "redux-persist/lib/stateReconciler/hardSet";
-// TODO: why?
+// src: https://stackoverflow.com/a/73786120/12184991
 import * as reduxThunk from "redux-thunk/extend-redux";
 
 const rootReducer = combineReducers({
