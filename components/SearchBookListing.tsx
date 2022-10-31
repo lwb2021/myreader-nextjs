@@ -15,7 +15,7 @@ const SearchBookListing = ({
     <div>
       <div className="bookshelf-books">
         {getAllBooksLoading ? (
-          <Spinner getAllBooksLoading={getAllBooksLoading} />
+          <Spinner isVisible={getAllBooksLoading} />
         ) : (
           <ul className="books-grid">
             {books.map((book: BookProps) => (

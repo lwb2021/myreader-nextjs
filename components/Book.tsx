@@ -95,6 +95,7 @@ const Book = ({ book }: { book: BookProps }) => {
           alt="checkmark"
           src="/checkmark.jpeg"
           layout="fill"
+          priority={true}
         />
         <div className="book-shelf-changer">
           <select onChange={onSelect} id={book.id}>
