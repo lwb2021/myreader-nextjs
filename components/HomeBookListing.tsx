@@ -14,7 +14,7 @@ const HomeBookListing = ({
   getAllBooksLoading,
 }: HomeBookListingProps) => {
   const { currentlyReading, read, wantToRead } = useAppSelector(
-    (state) => state.book
+    (state) => state.HomePageBook
   );
   // Prepare the books to be displayed
   let books: BookProps[] = [];
