@@ -10,7 +10,9 @@ if (typeof window !== "undefined") {
   console.log("local token is ", token);
 
   if (!token)
-    token = localStorage.token = Math.random().toString(36).substr(-8);
+    token = localStorage.token = Math.random()
+      .toString(36)
+      .substr(-8);
 }
 
 const headers = {
@@ -32,16 +34,11 @@ export const getAllBooks = () =>
         read: [],
         wantToRead: [],
       };
-      data.books.filter((book) => {
+      data.books.forEach((book) => {
         response[book.shelf].push(book);
       });
       return response;
     });
-
-export const getBooksByShelf = (shelf) =>
-  fetch(`${api}/books`, { headers })
-    .then((res) => res.json())
-    .then((data) => data.books.filter((book) => book.shelf === shelf));
 
 export const updateBook = (book, shelf) =>
   fetch(`${api}/books/${book.id}`, {

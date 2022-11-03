@@ -3,7 +3,7 @@ import { CATEGORIES } from "../utils/constants";
 import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
-import { getHomePageBooks } from "../store/book/bookSlice";
+import { getHomePageBooks } from "../store/book/HomePageBookSlice";
 import { updateBook } from "../pages/api/BooksAPI";
 
 export interface BookProps {
@@ -22,19 +22,16 @@ const Book = ({ book }: { book: BookProps }) => {
   const router = useRouter();
   const currentlySelectedIndex = useRef(-1);
 
-  async function updateShelf(book: BookProps, shelf: string) {
-    try {
-      const response = await updateBook(book, shelf);
-      return response;
-    } catch (err: any) {
-      return err;
-    }
-  }
-
   async function onSelect(event: React.ChangeEvent<HTMLSelectElement>) {
     // Update the book
-    const shelf = event.currentTarget.value as string;
-    await updateShelf(book, shelf);
+    (async () => {
+      try {
+        const shelf = event.currentTarget.value as string;
+        await updateBook(book, shelf);
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    })();
 
     // Mark the book as selected
     if (router.pathname === "/search") {

@@ -2,12 +2,12 @@ import HomeBookListing from "../components/HomeBookListing";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { getHomePageBooks } from "../store/book/bookSlice";
+import { getHomePageBooks } from "../store/book/HomePageBookSlice";
 
 const HomePage = () => {
   const router = useRouter();
   const { currentlyReading, read, wantToRead } = useAppSelector(
-    (state) => state.book
+    (state) => state.HomePageBook
   );
   const [getAllBooksLoading, setGetAllBooksLoading] = useState(false);
   const [hasCache, setHasCache] = useState(false);
@@ -16,10 +16,10 @@ const HomePage = () => {
 
   useEffect(() => {
     // Retrieve books from Redux Persist
-    const persistedBooks = currentlyReading.concat(read, wantToRead);
-    if (persistedBooks.length) {
+    if (currentlyReading.length || read.length || wantToRead.length) {
       setHasCache(true);
     }
+
     // Show spinner
     setGetAllBooksLoading(true);
     // Get all home page books

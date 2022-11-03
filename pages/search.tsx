@@ -18,13 +18,13 @@ const SearchPage = () => {
   const BLANK_MSG = "No result found.";
   const SEARCHMAP_NAME = "searchMap";
   const { currentlyReading, read, wantToRead } = useAppSelector(
-    (state) => state.book
+    (state) => state.HomePageBook
   );
 
   function markSearchedBooksVisibility(response: BookProps[]) {
     const searchedBooks: BookProps[] = [];
     const combinedArray = [...currentlyReading, ...read, ...wantToRead];
-    response.filter((book: BookProps) => {
+    response.forEach((book: BookProps) => {
       const index = combinedArray.findIndex((item) => item.id === book.id);
       if (index === -1) {
         searchedBooks.push(book);
@@ -102,7 +102,7 @@ const SearchPage = () => {
         // Display most updated search result
         setSearchedBooks(markSearchedBooksVisibility(response));
       } catch (err) {
-        console.log(err);
+        console.error("Error:", err);
       }
       // Hide spinner
       if (!storedBooks) setGetAllBooksLoading((prevState) => !prevState);
